@@ -1,69 +1,73 @@
 import { useState } from "react"
 
-export default function App(){
+export default function App() {
 
   const [name,setName] = useState("")
-  const [name2,setName2] = useState("")
-  const [mode,setMode] = useState("solo")
+  const [entries,setEntries] = useState([])
+
+  const submit = async () => {
+
+    if(!name) return
+
+    const res = await fetch("/.netlify/functions/submitEntry",{
+      method:"POST",
+      body: JSON.stringify({name})
+    })
+
+    const data = await res.json()
+
+    setEntries([...entries,{name}])
+    setName("")
+  }
 
   return (
+    <div className="container">
 
-    <div style={{padding:40,fontFamily:"sans-serif"}}>
+      <div className="title">
+        🍱 SpoonLabs 랜덤런치
+      </div>
 
-      <h1>🍱 SpoonLabs 랜덤런치</h1>
+      <div className="card">
 
-      <div style={{marginTop:20}}>
+        <div className="inputRow">
 
-        <button onClick={()=>setMode("solo")}>혼자 신청</button>
-        <button onClick={()=>setMode("group")} style={{marginLeft:10}}>같이 신청</button>
+          <input
+            placeholder="이름 입력"
+            value={name}
+            onChange={(e)=>setName(e.target.value)}
+          />
+
+          <button onClick={submit}>
+            신청
+          </button>
+
+        </div>
 
       </div>
 
-      {mode==="solo" && (
+      <div className="card">
 
-        <div style={{marginTop:20}}>
+        <b>현재 신청자</b>
 
-          <input
-          placeholder="이름"
-          value={name}
-          onChange={(e)=>setName(e.target.value)}
-          />
+        <div className="characters">
 
-          <button style={{marginLeft:10}}>
-          신청
-          </button>
-
-        </div>
-
-      )}
-
-      {mode==="group" && (
-
-        <div style={{marginTop:20}}>
-
-          <input
-          placeholder="이름1"
-          value={name}
-          onChange={(e)=>setName(e.target.value)}
-          />
-
-          <input
-          placeholder="이름2"
-          value={name2}
-          onChange={(e)=>setName2(e.target.value)}
-          style={{marginLeft:10}}
-          />
-
-          <button style={{marginLeft:10}}>
-          같이 신청
-          </button>
+          {entries.map((e,i)=>(
+            <div
+              key={i}
+              className="character"
+              style={{
+                top:Math.random()*350,
+                left:Math.random()*700
+              }}
+            >
+              {e.name}
+            </div>
+          ))}
 
         </div>
 
-      )}
+      </div>
 
     </div>
-
   )
-
 }
