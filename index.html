@@ -1,227 +1,906 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpoonLabs 랜덤런치 신청</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpoonLabs 랜덤런치 신청</title>
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+  <style>
+    :root {
+      --bg: #f7efe6;
+      --card: rgba(255,255,255,0.82);
+      --line: rgba(60, 35, 20, 0.08);
+      --text: #2a2118;
+      --sub: #7d6c5d;
+      --accent: #ff7f73;
+      --shadow: 0 18px 40px rgba(80, 47, 25, 0.08);
+      --radius-xl: 24px;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.85), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,185,140,0.18), transparent 24%),
+        linear-gradient(180deg, #fbf3eb 0%, #f5ede5 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 28px auto 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .hero-card,
+    .panel,
+    .summary-card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.65);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+    }
+
+    .hero-card {
+      padding: 28px;
+      min-height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(60, 35, 20, 0.07);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4.2vw, 46px);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-desc {
+      margin: 14px 0 0;
+      color: var(--sub);
+      line-height: 1.65;
+      font-size: 15px;
+      max-width: 640px;
+    }
+
+    .mini-guide {
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+      align-content: center;
+    }
+
+    .mini-guide h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .mini-guide-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .mini-guide-item .num {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255,127,115,0.12);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      flex: 0 0 auto;
+      font-size: 12px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .left-col {
+      display: grid;
+      gap: 16px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.7);
+      color: var(--sub);
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .mode-tab.active {
+      background: linear-gradient(135deg, #ff8e81, #ffb46a);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 10px 22px rgba(255,127,115,0.24);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--sub);
+      font-weight: 600;
+    }
+
+    .field input {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid rgba(60,35,20,0.09);
+      background: rgba(255,255,255,0.9);
+      padding: 0 14px;
+      outline: none;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      height: 48px;
+      padding: 0 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff8d80, #ffb76f);
+      color: #fff;
+      box-shadow: 0 14px 22px rgba(255,127,115,0.22);
+      flex: 1;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.85);
+      color: var(--text);
+      border: 1px solid var(--line);
+      flex: 1;
+    }
+
+    .notice {
+      margin-top: 12px;
+      min-height: 22px;
+      font-size: 13px;
+      color: var(--sub);
+    }
+
+    .notice.error { color: #d85b5b; }
+    .notice.success { color: #2f8a57; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      padding: 18px 18px 16px;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .summary-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .board {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.65);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      overflow: hidden;
+    }
+
+    .board-head {
+      padding: 18px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .board-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .board-sub {
+      font-size: 13px;
+      color: var(--sub);
+      margin-top: 4px;
+    }
+
+    .matter-wrap {
+      padding: 16px 20px 20px;
+    }
+
+    #world {
+      width: 100%;
+      height: 560px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.56)),
+        radial-gradient(circle at 18% 18%, rgba(255,184,107,0.08), transparent 12%),
+        radial-gradient(circle at 82% 22%, rgba(255,127,115,0.08), transparent 14%);
+      border: 1px dashed rgba(60,35,20,0.10);
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .lists {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .list-card {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(60,35,20,0.07);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .list-card h4 {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      background: rgba(255,184,107,0.20);
+      color: #6d4d2e;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .empty {
+      color: var(--sub);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1024px) {
+      .hero, .content {
+        grid-template-columns: 1fr;
+      }
+      .left-col {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap {
+        width: min(100% - 20px, 100%);
+        margin-top: 18px;
+      }
+      .summary-grid,
+      .lists,
+      .row-2 {
+        grid-template-columns: 1fr;
+      }
+      #world { height: 460px; }
+      .btn-row { flex-direction: column; }
+    }
+  </style>
 </head>
-
 <body>
-
-<script>
-
-/**
- * 관리자 설정값
- */
-
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxrbz_FKnZSM3z--nzJwfqCqJ1Dj6F7ygUApyXqcR6n1Dvm4KMFtJdMIjdhE6Pi2K6PZw/exec";
-
-const SHEET_CSV_URL =
-"https://docs.google.com/spreadsheets/d/1_dZyvNXT17ulxe5PsBhkJJ9rdns96V8UHClCm2OMf9g/gviz/tq?tqx=out:csv&sheet=entries";
-
-
-/**
- * 아래 코드는 기존 코드 그대로 유지
- */
-
-const GROUP_CODES = ["가","나","다","라","마","바","사","아","자","차","카","타","파","하"];
-
-const FOOD_EMOJIS = ["🍔","🍕","🍣","🍜","🥗","🌮","🍙","🥪","🍗","🍤","🍩","🍪","🍎","🍊","🍇","🍰"];
-
-let activeMode = "solo";
-
-let engine;
-let render;
-let runner;
-
-let worldWidth;
-let worldHeight;
-
-let dropBodies = [];
-
-let droppedNames = new Set();
-
-let lastRows = [];
-
-function normalizeName(name){
-return String(name || "").trim();
-}
-
-function parseCsvLine(line){
-
-const out = [];
-let current = "";
-let inQuotes = false;
-
-for (let i=0;i<line.length;i++){
-
-const ch = line[i];
-
-if(ch === '"'){
-
-if(inQuotes && line[i+1] === '"'){
-current += '"';
-i++;
-}else{
-inQuotes = !inQuotes;
-}
-
-}else if(ch === "," && !inQuotes){
-
-out.push(current);
-current="";
-
-}else{
-
-current+=ch;
-
-}
-
-}
-
-out.push(current);
-
-return out;
-
-}
-
-function csvToObjects(csvText){
-
-const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
-
-if(!lines.length) return [];
-
-const headers = parseCsvLine(lines[0]).map(h=>h.trim());
-
-return lines.slice(1).map(line=>{
-
-const cells = parseCsvLine(line);
-
-const obj={};
-
-headers.forEach((header,index)=>{
-obj[header]=(cells[index]||"").trim();
-});
-
-return obj;
-
-});
-
-}
-
-async function loadRowsFromSheet(){
-
-const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now());
-
-const text = await response.text();
-
-return csvToObjects(text);
-
-}
-
-async function refreshBoard(){
-
-const rows = await loadRowsFromSheet();
-
-lastRows = rows;
-
-}
-
-async function postToGas(payload){
-
-const response = await fetch(GAS_URL,{
-method:"POST",
-headers:{
-"Content-Type":"text/plain;charset=utf-8"
-},
-body:JSON.stringify(payload)
-});
-
-const data = await response.json();
-
-if(!data.success){
-
-throw new Error(data.message || "요청 실패");
-
-}
-
-return data;
-
-}
-
-async function submitSolo(){
-
-const rawName = normalizeName(document.getElementById("soloName").value);
-
-if(!rawName){
-alert("이름을 입력하세요");
-return;
-}
-
-await postToGas({
-action:"submitSolo",
-rawName
-});
-
-alert("신청 완료");
-
-refreshBoard();
-
-}
-
-async function submitPair(){
-
-const rawName1 = normalizeName(document.getElementById("pairName1").value);
-const rawName2 = normalizeName(document.getElementById("pairName2").value);
-
-if(!rawName1 || !rawName2){
-
-alert("두 이름 입력");
-
-return;
-
-}
-
-const groupCode = GROUP_CODES[Math.floor(Math.random()*GROUP_CODES.length)];
-
-await postToGas({
-action:"submitPair",
-rawName1,
-rawName2,
-groupCode
-});
-
-alert("같이 신청 완료");
-
-refreshBoard();
-
-}
-
-async function cancelForm(){
-
-const rawName = normalizeName(document.getElementById("cancelName").value);
-
-await postToGas({
-action:"cancel",
-rawName
-});
-
-alert("취소 완료");
-
-refreshBoard();
-
-}
-
-window.onload = function(){
-
-refreshBoard();
-
-}
-
-</script>
-
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">🥗 SpoonLabs Random Lunch</div>
+        <h1>스푼랩스 랜덤런치 신청</h1>
+        <p class="hero-desc">
+          혼자 신청할 수도 있고, 같이 신청할 수도 있어요.
+          신청된 이름은 음식과 함께 떨어지고, 현재 신청자/같이 신청팀도 화면에서 바로 확인할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="hero-card mini-guide">
+        <h3>이용 방법</h3>
+        <div class="mini-guide-item"><span class="num">1</span><span>혼자 신청은 이름 1개, 같이 신청은 이름 2개를 입력합니다.</span></div>
+        <div class="mini-guide-item"><span class="num">2</span><span>같이 신청 시 자동으로 그룹 코드(가, 나, 다...)가 붙습니다.</span></div>
+        <div class="mini-guide-item"><span class="num">3</span><span>취소는 신청했던 이름 기준으로 할 수 있고, 같이 신청은 두 사람 모두 함께 취소됩니다.</span></div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="left-col">
+        <div class="panel">
+          <div class="panel-title">신청하기</div>
+
+          <div class="mode-tabs">
+            <button class="mode-tab active" id="tabSolo" type="button">🙋 혼자 신청</button>
+            <button class="mode-tab" id="tabPair" type="button">👯 같이 신청</button>
+          </div>
+
+          <div id="soloForm" class="form-grid">
+            <div class="field">
+              <label for="soloName">이름</label>
+              <input id="soloName" type="text" placeholder="예: Claire" />
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" id="soloSubmit" type="button">혼자 신청하기</button>
+            </div>
+          </div>
+
+          <div id="pairForm" class="form-grid" style="display:none;">
+            <div class="row-2">
+              <div class="field">
+                <label for="pairName1">이름 1</label>
+                <input id="pairName1" type="text" placeholder="예: Claire" />
+              </div>
+              <div class="field">
+                <label for="pairName2">이름 2</label>
+                <input id="pairName2" type="text" placeholder="예: Bailey" />
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" id="pairSubmit" type="button">같이 신청하기</button>
+            </div>
+          </div>
+
+          <div id="submitNotice" class="notice"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">취소하기</div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="cancelName">신청한 이름</label>
+              <input id="cancelName" type="text" placeholder="취소할 이름을 입력해 주세요" />
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-secondary" id="cancelSubmit" type="button">신청 취소</button>
+            </div>
+          </div>
+          <div id="cancelNotice" class="notice"></div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">현재 활성 신청자</div>
+            <div class="summary-value" id="summaryTotal">0</div>
+            <div class="summary-sub">취소되지 않은 신청 기준</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">혼자 신청</div>
+            <div class="summary-value" id="summarySolo">0</div>
+            <div class="summary-sub">개별 신청자 수</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">같이 신청팀</div>
+            <div class="summary-value" id="summaryPair">0</div>
+            <div class="summary-sub">같은 조로 묶인 팀 수</div>
+          </div>
+        </div>
+
+        <div class="board">
+          <div class="board-head">
+            <div>
+              <div class="board-title">현재 신청자 보드</div>
+              <div class="board-sub">Google Sheets 현재 데이터 기준</div>
+            </div>
+          </div>
+
+          <div class="matter-wrap">
+            <div id="world"></div>
+
+            <div class="lists">
+              <div class="list-card">
+                <h4>현재 신청자</h4>
+                <div class="chips" id="soloList"></div>
+                <div class="empty" id="soloEmpty" style="display:none;">아직 신청자가 없습니다.</div>
+              </div>
+
+              <div class="list-card">
+                <h4>같이 신청팀</h4>
+                <div class="chips" id="pairList"></div>
+                <div class="empty" id="pairEmpty" style="display:none;">아직 같이 신청한 팀이 없습니다.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxrbz_FKnZSM3z--nzJwfqCqJ1Dj6F7ygUApyXqcR6n1Dvm4KMFtJdMIjdhE6Pi2K6PZw/exec";
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1_dZyvNXT17ulxe5PsBhkJJ9rdns96V8UHClCm2OMf9g/gviz/tq?tqx=out:csv&sheet=entries";
+
+    const GROUP_CODES = ["가","나","다","라","마","바","사","아","자","차","카","타","파","하"];
+    const FOOD_EMOJIS = ["🍔","🍕","🍣","🍜","🥗","🌮","🍙","🥪","🍗","🍤","🍩","🍪","🍎","🍊","🍇","🍰"];
+
+    let engine, render, runner, worldWidth, worldHeight;
+    let dropBodies = [];
+    let droppedNames = new Set();
+    let lastRows = [];
+
+    const els = {
+      tabSolo: document.getElementById("tabSolo"),
+      tabPair: document.getElementById("tabPair"),
+      soloForm: document.getElementById("soloForm"),
+      pairForm: document.getElementById("pairForm"),
+      soloName: document.getElementById("soloName"),
+      pairName1: document.getElementById("pairName1"),
+      pairName2: document.getElementById("pairName2"),
+      cancelName: document.getElementById("cancelName"),
+      soloSubmit: document.getElementById("soloSubmit"),
+      pairSubmit: document.getElementById("pairSubmit"),
+      cancelSubmit: document.getElementById("cancelSubmit"),
+      submitNotice: document.getElementById("submitNotice"),
+      cancelNotice: document.getElementById("cancelNotice"),
+      world: document.getElementById("world"),
+      summaryTotal: document.getElementById("summaryTotal"),
+      summarySolo: document.getElementById("summarySolo"),
+      summaryPair: document.getElementById("summaryPair"),
+      soloList: document.getElementById("soloList"),
+      pairList: document.getElementById("pairList"),
+      soloEmpty: document.getElementById("soloEmpty"),
+      pairEmpty: document.getElementById("pairEmpty")
+    };
+
+    function setNotice(target, message, type = "") {
+      target.className = "notice" + (type ? " " + type : "");
+      target.textContent = message || "";
+    }
+
+    function switchMode(mode) {
+      const isSolo = mode === "solo";
+      els.tabSolo.classList.toggle("active", isSolo);
+      els.tabPair.classList.toggle("active", !isSolo);
+      els.soloForm.style.display = isSolo ? "grid" : "none";
+      els.pairForm.style.display = isSolo ? "none" : "grid";
+      setNotice(els.submitNotice, "");
+    }
+
+    function normalizeName(name) {
+      return String(name || "").trim();
+    }
+
+    function pickNextGroupCode(rows) {
+      const used = new Set(rows.filter(r => r.status === "active" && r.groupCode).map(r => r.groupCode));
+      return GROUP_CODES.find(code => !used.has(code)) || ("팀" + (used.size + 1));
+    }
+
+    function parseCsvLine(line) {
+      const out = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === "," && !inQuotes) {
+          out.push(current);
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      out.push(current);
+      return out;
+    }
+
+    function csvToObjects(csvText) {
+      const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return [];
+      const headers = parseCsvLine(lines[0]).map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cells = parseCsvLine(line);
+        const obj = {};
+        headers.forEach((header, idx) => {
+          obj[header] = (cells[idx] || "").trim();
+        });
+        return obj;
+      });
+    }
+
+    function getActiveRows(rows) {
+      return rows.filter(r => (r.status || "active") === "active");
+    }
+
+    function renderSummary(rows) {
+      const activeRows = getActiveRows(rows);
+      const soloRows = activeRows.filter(r => r.mode === "solo");
+      const pairGroups = new Map();
+
+      activeRows.filter(r => r.mode === "pair" && r.groupCode).forEach(r => {
+        if (!pairGroups.has(r.groupCode)) pairGroups.set(r.groupCode, []);
+        pairGroups.get(r.groupCode).push(r);
+      });
+
+      els.summaryTotal.textContent = activeRows.length;
+      els.summarySolo.textContent = soloRows.length;
+      els.summaryPair.textContent = pairGroups.size;
+
+      els.soloList.innerHTML = "";
+      els.pairList.innerHTML = "";
+
+      if (!soloRows.length) {
+        els.soloEmpty.style.display = "block";
+      } else {
+        els.soloEmpty.style.display = "none";
+        soloRows.forEach(row => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = row.rawName;
+          els.soloList.appendChild(chip);
+        });
+      }
+
+      if (!pairGroups.size) {
+        els.pairEmpty.style.display = "block";
+      } else {
+        els.pairEmpty.style.display = "none";
+        [...pairGroups.entries()].forEach(([groupCode, members]) => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = `${groupCode} ${members.map(m => m.rawName).join(" + ")}`;
+          els.pairList.appendChild(chip);
+        });
+      }
+    }
+
+    function initMatter() {
+      const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
+      worldWidth = els.world.clientWidth;
+      worldHeight = els.world.clientHeight;
+
+      engine = Engine.create();
+      engine.gravity.y = 0.9;
+
+      render = Render.create({
+        element: els.world,
+        engine,
+        options: {
+          width: worldWidth,
+          height: worldHeight,
+          wireframes: false,
+          background: "transparent"
+        }
+      });
+
+      const floor = Bodies.rectangle(worldWidth / 2, worldHeight + 18, worldWidth + 200, 40, { isStatic: true, render: { fillStyle: "transparent" } });
+      const leftWall = Bodies.rectangle(-18, worldHeight / 2, 40, worldHeight + 200, { isStatic: true, render: { fillStyle: "transparent" } });
+      const rightWall = Bodies.rectangle(worldWidth + 18, worldHeight / 2, 40, worldHeight + 200, { isStatic: true, render: { fillStyle: "transparent" } });
+
+      Composite.add(engine.world, [floor, leftWall, rightWall]);
+
+      const mouse = Mouse.create(render.canvas);
+      const mouseConstraint = MouseConstraint.create(engine, {
+        mouse,
+        constraint: {
+          stiffness: 0.2,
+          render: { visible: false }
+        }
+      });
+
+      Composite.add(engine.world, mouseConstraint);
+      render.mouse = mouse;
+
+      Render.run(render);
+      runner = Runner.create();
+      Runner.run(runner, engine);
+    }
+
+    function resetMatterWorld() {
+      if (!engine) return;
+      dropBodies.forEach(body => Matter.Composite.remove(engine.world, body));
+      dropBodies = [];
+      droppedNames.clear();
+    }
+
+    function measureLabel(text) {
+      const base = Math.max(80, text.length * 16 + 34);
+      return { width: Math.min(base, 220), height: 44 };
+    }
+
+    function createNameBody(label) {
+      const { Bodies } = Matter;
+      const size = measureLabel(label);
+      const x = 80 + Math.random() * Math.max(120, worldWidth - 160);
+      const y = -50 - Math.random() * 120;
+      const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+
+      const body = Bodies.roundedRectangle(x, y, size.width, size.height, 18, {
+        restitution: 0.45,
+        friction: 0.08,
+        frictionAir: 0.01,
+        render: {
+          fillStyle: "#ffd4a0",
+          strokeStyle: "rgba(109,77,46,0.12)",
+          lineWidth: 1
+        }
+      });
+
+      body.labelText = label;
+      body.emojiText = emoji;
+      dropBodies.push(body);
+      Matter.Composite.add(engine.world, body);
+    }
+
+    function patchRenderText() {
+      const original = Matter.Render.world;
+      Matter.Render.world = function(renderInstance) {
+        original(renderInstance);
+        const context = renderInstance.context;
+
+        dropBodies.forEach(body => {
+          const pos = body.position;
+          const angle = body.angle;
+
+          context.save();
+          context.translate(pos.x, pos.y);
+          context.rotate(angle);
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+
+          context.font = "15px Pretendard, Arial, sans-serif";
+          context.fillStyle = "#6d4d2e";
+          context.fillText(body.labelText || "", 0, 1);
+
+          context.font = "18px Arial, sans-serif";
+          context.fillText(body.emojiText || "🍽️", -(body.bounds.max.x - body.bounds.min.x)/2 + 18, 0);
+          context.restore();
+        });
+      };
+    }
+
+    function dropName(label) {
+      if (!label || droppedNames.has(label)) return;
+      droppedNames.add(label);
+      createNameBody(label);
+    }
+
+    async function loadRowsFromSheet() {
+      const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now());
+      if (!response.ok) throw new Error("시트 데이터를 불러오지 못했습니다.");
+      const text = await response.text();
+      return csvToObjects(text);
+    }
+
+    async function refreshBoard() {
+      const rows = await loadRowsFromSheet();
+      lastRows = rows;
+      renderSummary(rows);
+      resetMatterWorld();
+
+      const labels = getActiveRows(rows).map(r => r.mode === "pair" && r.groupCode ? `${r.groupCode} ${r.rawName}` : (r.displayName || r.rawName));
+
+      let index = 0;
+      const timer = setInterval(() => {
+        if (index >= labels.length) {
+          clearInterval(timer);
+          return;
+        }
+        dropName(labels[index]);
+        index++;
+      }, 220);
+    }
+
+    async function postToGas(payload) {
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || "요청 처리에 실패했습니다.");
+      }
+      return data;
+    }
+
+    async function submitSolo() {
+      const rawName = normalizeName(els.soloName.value);
+      if (!rawName) {
+        setNotice(els.submitNotice, "이름을 입력해 주세요.", "error");
+        return;
+      }
+
+      try {
+        els.soloSubmit.disabled = true;
+        setNotice(els.submitNotice, "신청 중...", "");
+        await postToGas({ action: "submitSolo", rawName });
+        setNotice(els.submitNotice, `${rawName} 님 신청 완료!`, "success");
+        els.soloName.value = "";
+        await refreshBoard();
+      } catch (error) {
+        setNotice(els.submitNotice, error.message, "error");
+      } finally {
+        els.soloSubmit.disabled = false;
+      }
+    }
+
+    async function submitPair() {
+      const rawName1 = normalizeName(els.pairName1.value);
+      const rawName2 = normalizeName(els.pairName2.value);
+
+      if (!rawName1 || !rawName2) {
+        setNotice(els.submitNotice, "같이 신청할 두 사람 이름을 모두 입력해 주세요.", "error");
+        return;
+      }
+
+      if (rawName1 === rawName2) {
+        setNotice(els.submitNotice, "같은 이름 두 개로는 같이 신청할 수 없습니다.", "error");
+        return;
+      }
+
+      try {
+        els.pairSubmit.disabled = true;
+        setNotice(els.submitNotice, "같이 신청 중...", "");
+        const groupCode = pickNextGroupCode(lastRows);
+        await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
+        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료!`, "success");
+        els.pairName1.value = "";
+        els.pairName2.value = "";
+        await refreshBoard();
+      } catch (error) {
+        setNotice(els.submitNotice, error.message, "error");
+      } finally {
+        els.pairSubmit.disabled = false;
+      }
+    }
+
+    async function cancelForm() {
+      const rawName = normalizeName(els.cancelName.value);
+      if (!rawName) {
+        setNotice(els.cancelNotice, "취소할 이름을 입력해 주세요.", "error");
+        return;
+      }
+
+      try {
+        els.cancelSubmit.disabled = true;
+        setNotice(els.cancelNotice, "취소 처리 중...", "");
+        await postToGas({ action: "cancel", rawName });
+        setNotice(els.cancelNotice, `${rawName} 님 신청 취소 완료`, "success");
+        els.cancelName.value = "";
+        await refreshBoard();
+      } catch (error) {
+        setNotice(els.cancelNotice, error.message, "error");
+      } finally {
+        els.cancelSubmit.disabled = false;
+      }
+    }
+
+    function bindEvents() {
+      els.tabSolo.addEventListener("click", () => switchMode("solo"));
+      els.tabPair.addEventListener("click", () => switchMode("pair"));
+      els.soloSubmit.addEventListener("click", submitSolo);
+      els.pairSubmit.addEventListener("click", submitPair);
+      els.cancelSubmit.addEventListener("click", cancelForm);
+
+      els.soloName.addEventListener("keydown", e => {
+        if (e.key === "Enter") submitSolo();
+      });
+      els.pairName1.addEventListener("keydown", e => {
+        if (e.key === "Enter") submitPair();
+      });
+      els.pairName2.addEventListener("keydown", e => {
+        if (e.key === "Enter") submitPair();
+      });
+      els.cancelName.addEventListener("keydown", e => {
+        if (e.key === "Enter") cancelForm();
+      });
+    }
+
+    window.addEventListener("load", async () => {
+      initMatter();
+      patchRenderText();
+      bindEvents();
+      try {
+        await refreshBoard();
+      } catch (error) {
+        setNotice(els.submitNotice, error.message, "error");
+      }
+    });
+  </script>
 </body>
 </html>
