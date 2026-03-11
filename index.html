@@ -731,7 +731,8 @@
       const y = -50 - Math.random() * 120;
       const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
 
-      const body = Bodies.roundedRectangle(x, y, size.width, size.height, 18, {
+      const body = Bodies.rectangle(x, y, size.width, size.height, {
+        chamfer: { radius: 18 },
         restitution: 0.45,
         friction: 0.08,
         frictionAir: 0.01,
@@ -739,9 +740,8 @@
           fillStyle: "#ffd4a0",
           strokeStyle: "rgba(109,77,46,0.12)",
           lineWidth: 1
-        }
-      });
-
+  }
+});
       body.labelText = label;
       body.emojiText = emoji;
 
@@ -962,11 +962,13 @@
         els.soloSubmit.textContent = "신청 중...";
         setNotice(els.submitNotice, "신청 중...", "");
 
-        await postToGas({ action: "submitSolo", rawName });
         optimisticAddSolo(rawName);
+        setNotice(els.submitNotice, "신청 중...");
+        els.soloName.value = "";
+
+        await postToGas({ action: "submitSolo", rawName });
 
         setNotice(els.submitNotice, "신청 완료! 🤩", "success");
-        els.soloName.value = "";
         scheduleRefresh();
       } catch (error) {
         setNotice(els.submitNotice, error.message || "신청 중 오류가 발생했습니다.", "error");
@@ -998,12 +1000,15 @@
         setNotice(els.submitNotice, "함께 신청 중...", "");
 
         const groupCode = pickNextGroupCode(lastRows);
-        await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
-        optimisticAddPair(rawName1, rawName2, groupCode);
 
-        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료! 🤩`, "success");
+        optimisticAddPair(rawName1, rawName2, groupCode);
+        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 중...`);
         els.pairName1.value = "";
         els.pairName2.value = "";
+
+        await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
+
+        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료! 🤩`, "success");
         scheduleRefresh();
       } catch (error) {
         setNotice(els.submitNotice, error.message || "함께 신청 중 오류가 발생했습니다.", "error");
@@ -1028,11 +1033,13 @@
         els.cancelSubmit.textContent = "취소 중...";
         setNotice(els.cancelNotice, "취소 처리 중...", "");
 
-        await postToGas({ action: "cancel", rawName });
         optimisticCancel(rawName);
-
-        setNotice(els.cancelNotice, "취소 완료 😭", "success");
+        setNotice(els.cancelNotice, "취소 처리 중...");
         els.cancelName.value = "";
+
+        await postToGas({ action: "cancel", rawName });
+        
+        setNotice(els.cancelNotice, "취소 완료 😭", "success");
         scheduleRefresh();
       } catch (error) {
         setNotice(els.cancelNotice, error.message || "취소 중 오류가 발생했습니다.", "error");
