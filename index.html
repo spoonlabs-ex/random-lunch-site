@@ -385,21 +385,12 @@
   <div class="wrap">
     <section class="hero">
       <div class="hero-card">
-        <div class="eyebrow">🥗 SpoonLabs Random Lunch</div>
-        <h1>스푼랩스 랜덤런치 신청</h1>
+        <div class="eyebrow">SpoonLabs Random Lunch</div>
+        <h1>랜덤런치 신청하기🍕</h1>
         <p class="hero-desc">
           혼자 신청할 수도 있고, 같이 신청할 수도 있어요.
           신청된 이름은 음식과 함께 떨어지고, 현재 신청자/같이 신청팀도 화면에서 바로 확인할 수 있습니다.
         </p>
-      </div>
-
-      <div class="hero-card mini-guide">
-        <h3>이용 방법</h3>
-        <div class="mini-guide-item"><span class="num">1</span><span>혼자 신청은 이름 1개, 같이 신청은 이름 2개를 입력합니다.</span></div>
-        <div class="mini-guide-item"><span class="num">2</span><span>같이 신청 시 자동으로 그룹 코드(가, 나, 다...)가 붙습니다.</span></div>
-        <div class="mini-guide-item"><span class="num">3</span><span>취소는 신청했던 이름 기준으로 할 수 있고, 같이 신청은 두 사람 모두 함께 취소됩니다.</span></div>
-      </div>
-    </section>
 
     <section class="content">
       <div class="left-col">
@@ -408,7 +399,7 @@
 
           <div class="mode-tabs">
             <button class="mode-tab active" id="tabSolo" type="button">🙋 혼자 신청</button>
-            <button class="mode-tab" id="tabPair" type="button">👯 같이 신청</button>
+            <button class="mode-tab" id="tabPair" type="button">🧑‍🤝‍🧑 같이 신청</button>
           </div>
 
           <div id="soloForm" class="form-grid">
@@ -515,6 +506,7 @@
     let dropBodies = [];
     let droppedNames = new Set();
     let lastRows = [];
+    let syncTimer = null;
 
     const els = {
       tabSolo: document.getElementById("tabSolo"),
@@ -758,11 +750,31 @@
       createNameBody(label);
     }
 
+    function removeDroppedByLabel(predicate) {
+      const targets = dropBodies.filter(predicate);
+      targets.forEach(body => {
+        Matter.Composite.remove(engine.world, body);
+        droppedNames.delete(body.labelText);
+      });
+      dropBodies = dropBodies.filter(body => !targets.includes(body));
+    }
+
     async function loadRowsFromSheet() {
       const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now());
       if (!response.ok) throw new Error("시트 데이터를 불러오지 못했습니다.");
       const text = await response.text();
       return csvToObjects(text);
+    }
+
+    function scheduleRefresh() {
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(async () => {
+        try {
+          await refreshBoard();
+        } catch (error) {
+          console.error(error);
+        }
+      }, 1000);
     }
 
     async function refreshBoard() {
@@ -771,7 +783,9 @@
       renderSummary(rows);
       resetMatterWorld();
 
-      const labels = getActiveRows(rows).map(r => r.mode === "pair" && r.groupCode ? `${r.groupCode} ${r.rawName}` : (r.displayName || r.rawName));
+      const labels = getActiveRows(rows).map(r =>
+        r.mode === "pair" && r.groupCode ? `${r.groupCode} ${r.rawName}` : (r.displayName || r.rawName)
+      );
 
       let index = 0;
       const timer = setInterval(() => {
@@ -798,24 +812,94 @@
       return data;
     }
 
+    function optimisticAddSolo(rawName) {
+      const newRow = {
+        createdAt: new Date().toISOString(),
+        displayName: rawName,
+        rawName,
+        groupCode: "",
+        partnerName: "",
+        mode: "solo",
+        status: "active"
+      };
+      lastRows.push(newRow);
+      renderSummary(lastRows);
+      dropName(rawName);
+    }
+
+    function optimisticAddPair(rawName1, rawName2, groupCode) {
+      const row1 = {
+        createdAt: new Date().toISOString(),
+        displayName: `${groupCode} ${rawName1}`,
+        rawName: rawName1,
+        groupCode,
+        partnerName: rawName2,
+        mode: "pair",
+        status: "active"
+      };
+      const row2 = {
+        createdAt: new Date().toISOString(),
+        displayName: `${groupCode} ${rawName2}`,
+        rawName: rawName2,
+        groupCode,
+        partnerName: rawName1,
+        mode: "pair",
+        status: "active"
+      };
+      lastRows.push(row1, row2);
+      renderSummary(lastRows);
+      dropName(`${groupCode} ${rawName1}`);
+      dropName(`${groupCode} ${rawName2}`);
+    }
+
+    function optimisticCancel(rawName) {
+      const target = lastRows.find(r => r.status === "active" && r.rawName === rawName);
+      if (!target) return;
+
+      if (target.groupCode) {
+        lastRows.forEach(r => {
+          if (r.status === "active" && r.groupCode === target.groupCode) {
+            r.status = "cancelled";
+          }
+        });
+        removeDroppedByLabel(body => typeof body.labelText === "string" && body.labelText.startsWith(target.groupCode + " "));
+      } else {
+        lastRows.forEach(r => {
+          if (r.status === "active" && r.rawName === rawName) {
+            r.status = "cancelled";
+          }
+        });
+        removeDroppedByLabel(body => body.labelText === rawName);
+      }
+
+      renderSummary(lastRows);
+    }
+
     async function submitSolo() {
       const rawName = normalizeName(els.soloName.value);
       if (!rawName) {
-        setNotice(els.submitNotice, "이름을 입력해 주세요.", "error");
+        setNotice(els.submitNotice, "닉네임을 입력해 주세요.", "error");
         return;
       }
 
+      const originalText = els.soloSubmit.textContent;
+
       try {
         els.soloSubmit.disabled = true;
+        els.soloSubmit.textContent = "신청 중...";
         setNotice(els.submitNotice, "신청 중...", "");
+
         await postToGas({ action: "submitSolo", rawName });
-        setNotice(els.submitNotice, `${rawName} 님 신청 완료!`, "success");
+        optimisticAddSolo(rawName);
+
+        setNotice(els.submitNotice, `신청 완료! 🤩`, "success");
         els.soloName.value = "";
-        await refreshBoard();
+        scheduleRefresh();
       } catch (error) {
         setNotice(els.submitNotice, error.message, "error");
       } finally {
         els.soloSubmit.disabled = false;
+        els.soloSubmit.textContent = originalText;
       }
     }
 
@@ -824,49 +908,63 @@
       const rawName2 = normalizeName(els.pairName2.value);
 
       if (!rawName1 || !rawName2) {
-        setNotice(els.submitNotice, "같이 신청할 두 사람 이름을 모두 입력해 주세요.", "error");
+        setNotice(els.submitNotice, "같이 신청할 두 분의 닉네임을 모두 입력해 주세요.", "error");
         return;
       }
 
       if (rawName1 === rawName2) {
-        setNotice(els.submitNotice, "같은 이름 두 개로는 같이 신청할 수 없습니다.", "error");
+        setNotice(els.submitNotice, "같은 닉네임 두 개로는 같이 신청할 수 없습니다.", "error");
         return;
       }
 
+      const originalText = els.pairSubmit.textContent;
+
       try {
         els.pairSubmit.disabled = true;
+        els.pairSubmit.textContent = "신청 중...";
         setNotice(els.submitNotice, "같이 신청 중...", "");
+
         const groupCode = pickNextGroupCode(lastRows);
         await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
+        optimisticAddPair(rawName1, rawName2, groupCode);
+
         setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료!`, "success");
         els.pairName1.value = "";
         els.pairName2.value = "";
-        await refreshBoard();
+        scheduleRefresh();
       } catch (error) {
         setNotice(els.submitNotice, error.message, "error");
       } finally {
         els.pairSubmit.disabled = false;
+        els.pairSubmit.textContent = originalText;
       }
     }
 
     async function cancelForm() {
       const rawName = normalizeName(els.cancelName.value);
       if (!rawName) {
-        setNotice(els.cancelNotice, "취소할 이름을 입력해 주세요.", "error");
+        setNotice(els.cancelNotice, "취소할 닉네임을 입력해 주세요.", "error");
         return;
       }
 
+      const originalText = els.cancelSubmit.textContent;
+
       try {
         els.cancelSubmit.disabled = true;
+        els.cancelSubmit.textContent = "취소 중...";
         setNotice(els.cancelNotice, "취소 처리 중...", "");
+
         await postToGas({ action: "cancel", rawName });
-        setNotice(els.cancelNotice, `${rawName} 님 신청 취소 완료`, "success");
+        optimisticCancel(rawName);
+
+        setNotice(els.cancelNotice, '취소 완료 😭`, "success");
         els.cancelName.value = "";
-        await refreshBoard();
+        scheduleRefresh();
       } catch (error) {
         setNotice(els.cancelNotice, error.message, "error");
       } finally {
         els.cancelSubmit.disabled = false;
+        els.cancelSubmit.textContent = originalText;
       }
     }
 
@@ -899,6 +997,7 @@
         await refreshBoard();
       } catch (error) {
         setNotice(els.submitNotice, error.message, "error");
+        
       }
     });
   </script>
