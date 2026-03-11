@@ -437,6 +437,7 @@
           <div class="panel-title">취소하기</div>
           <div class="form-grid">
             <div class="field">
+            <input id="cancelName" type="text" placeholder="취소할 닉네임을 입력해 주세요" />
             </div>
             <div class="btn-row">
               <button class="btn btn-secondary" id="cancelSubmit" type="button">신청 취소</button>
@@ -922,7 +923,6 @@
       try {
         els.soloSubmit.disabled = true;
         els.soloSubmit.textContent = "신청 중...";
-        setNotice(els.submitNotice, "신청 중...", "");
 
         optimisticAddSolo(rawName);
         setNotice(els.submitNotice, "신청 중...");
@@ -993,7 +993,6 @@
       try {
         els.cancelSubmit.disabled = true;
         els.cancelSubmit.textContent = "취소 중...";
-        setNotice(els.cancelNotice, "취소 처리 중...", "");
 
         optimisticCancel(rawName);
         setNotice(els.cancelNotice, "취소 처리 중...");
