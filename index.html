@@ -582,7 +582,7 @@
 
     function renderSummary(rows) {
       const activeRows = getActiveRows(rows);
-      const soloRows = activeRows.filter(r => r.mode === "solo");
+      const visibleRows = activeRows;
       const pairGroups = new Map();
 
       activeRows
@@ -594,11 +594,11 @@
 
       els.soloList.innerHTML = "";
 
-      if (!soloRows.length) {
+      if (!visibleRows.length) {
         els.soloEmpty.style.display = "block";
       } else {
         els.soloEmpty.style.display = "none";
-        soloRows.forEach(row => {
+        visibleRows.forEach(row => {
           const chip = document.createElement("span");
           chip.className = "chip";
           chip.textContent = row.rawName || row.displayName || "";
