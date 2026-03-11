@@ -56,6 +56,7 @@
       min-height: 180px;
       position: relative;
       overflow: hidden;
+      grid-column: 1 / -1;
     }
 
     .eyebrow {
@@ -389,8 +390,10 @@
         <h1>랜덤런치 신청하기🍕</h1>
         <p class="hero-desc">
           새로운 동료들과 함께하는 여유로운 점심을 원하신다면, 지금 랜덤런치를 신청해 보세요!
-          혼자 신청할 수도 있고, 원하는 동료와 함께 신청할 수도 있어요. 🏃
+          혼자 신청할 수도 있고, 원하는 동료와 함께 신청할 수도 있어요.
         </p>
+      </div>
+    </section>
 
     <section class="content">
       <div class="left-col">
@@ -507,6 +510,8 @@
     let droppedNames = new Set();
     let lastRows = [];
     let syncTimer = null;
+    let refreshAnimationTimer = null;
+    let isRenderPatched = false;
 
     const els = {
       tabSolo: document.getElementById("tabSolo"),
@@ -551,7 +556,11 @@
     }
 
     function pickNextGroupCode(rows) {
-      const used = new Set(rows.filter(r => r.status === "active" && r.groupCode).map(r => r.groupCode));
+      const used = new Set(
+        rows
+          .filter(r => r.status === "active" && r.groupCode)
+          .map(r => r.groupCode)
+      );
       return GROUP_CODES.find(code => !used.has(code)) || ("팀" + (used.size + 1));
     }
 
@@ -559,6 +568,7 @@
       const out = [];
       let current = "";
       let inQuotes = false;
+
       for (let i = 0; i < line.length; i++) {
         const ch = line[i];
         if (ch === '"') {
@@ -575,14 +585,17 @@
           current += ch;
         }
       }
+
       out.push(current);
       return out;
     }
 
     function csvToObjects(csvText) {
-      const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
+      const lines = String(csvText || "").trim().split(/\r?\n/).filter(Boolean);
       if (!lines.length) return [];
+
       const headers = parseCsvLine(lines[0]).map(h => h.trim());
+
       return lines.slice(1).map(line => {
         const cells = parseCsvLine(line);
         const obj = {};
@@ -602,14 +615,16 @@
       const soloRows = activeRows.filter(r => r.mode === "solo");
       const pairGroups = new Map();
 
-      activeRows.filter(r => r.mode === "pair" && r.groupCode).forEach(r => {
-        if (!pairGroups.has(r.groupCode)) pairGroups.set(r.groupCode, []);
-        pairGroups.get(r.groupCode).push(r);
-      });
+      activeRows
+        .filter(r => r.mode === "pair" && r.groupCode)
+        .forEach(r => {
+          if (!pairGroups.has(r.groupCode)) pairGroups.set(r.groupCode, []);
+          pairGroups.get(r.groupCode).push(r);
+        });
 
-      els.summaryTotal.textContent = activeRows.length;
-      els.summarySolo.textContent = soloRows.length;
-      els.summaryPair.textContent = pairGroups.size;
+      els.summaryTotal.textContent = String(activeRows.length);
+      els.summarySolo.textContent = String(soloRows.length);
+      els.summaryPair.textContent = String(pairGroups.size);
 
       els.soloList.innerHTML = "";
       els.pairList.innerHTML = "";
@@ -621,7 +636,7 @@
         soloRows.forEach(row => {
           const chip = document.createElement("span");
           chip.className = "chip";
-          chip.textContent = row.rawName;
+          chip.textContent = row.rawName || row.displayName || "";
           els.soloList.appendChild(chip);
         });
       }
@@ -641,6 +656,7 @@
 
     function initMatter() {
       const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
+
       worldWidth = els.world.clientWidth;
       worldHeight = els.world.clientHeight;
 
@@ -654,13 +670,23 @@
           width: worldWidth,
           height: worldHeight,
           wireframes: false,
-          background: "transparent"
+          background: "transparent",
+          pixelRatio: window.devicePixelRatio > 1 ? 1.5 : 1
         }
       });
 
-      const floor = Bodies.rectangle(worldWidth / 2, worldHeight + 18, worldWidth + 200, 40, { isStatic: true, render: { fillStyle: "transparent" } });
-      const leftWall = Bodies.rectangle(-18, worldHeight / 2, 40, worldHeight + 200, { isStatic: true, render: { fillStyle: "transparent" } });
-      const rightWall = Bodies.rectangle(worldWidth + 18, worldHeight / 2, 40, worldHeight + 200, { isStatic: true, render: { fillStyle: "transparent" } });
+      const floor = Bodies.rectangle(worldWidth / 2, worldHeight + 18, worldWidth + 200, 40, {
+        isStatic: true,
+        render: { fillStyle: "transparent" }
+      });
+      const leftWall = Bodies.rectangle(-18, worldHeight / 2, 40, worldHeight + 200, {
+        isStatic: true,
+        render: { fillStyle: "transparent" }
+      });
+      const rightWall = Bodies.rectangle(worldWidth + 18, worldHeight / 2, 40, worldHeight + 200, {
+        isStatic: true,
+        render: { fillStyle: "transparent" }
+      });
 
       Composite.add(engine.world, [floor, leftWall, rightWall]);
 
@@ -683,13 +709,19 @@
 
     function resetMatterWorld() {
       if (!engine) return;
+
+      if (refreshAnimationTimer) {
+        clearInterval(refreshAnimationTimer);
+        refreshAnimationTimer = null;
+      }
+
       dropBodies.forEach(body => Matter.Composite.remove(engine.world, body));
       dropBodies = [];
       droppedNames.clear();
     }
 
     function measureLabel(text) {
-      const base = Math.max(80, text.length * 16 + 34);
+      const base = Math.max(80, String(text || "").length * 16 + 34);
       return { width: Math.min(base, 220), height: 44 };
     }
 
@@ -713,11 +745,15 @@
 
       body.labelText = label;
       body.emojiText = emoji;
+
       dropBodies.push(body);
       Matter.Composite.add(engine.world, body);
     }
 
     function patchRenderText() {
+      if (isRenderPatched) return;
+      isRenderPatched = true;
+
       const original = Matter.Render.world;
       Matter.Render.world = function(renderInstance) {
         original(renderInstance);
@@ -738,7 +774,11 @@
           context.fillText(body.labelText || "", 0, 1);
 
           context.font = "18px Arial, sans-serif";
-          context.fillText(body.emojiText || "🍽️", -(body.bounds.max.x - body.bounds.min.x)/2 + 18, 0);
+          context.fillText(
+            body.emojiText || "🍽️",
+            -((body.bounds.max.x - body.bounds.min.x) / 2) + 18,
+            0
+          );
           context.restore();
         });
       };
@@ -752,22 +792,31 @@
 
     function removeDroppedByLabel(predicate) {
       const targets = dropBodies.filter(predicate);
+
       targets.forEach(body => {
         Matter.Composite.remove(engine.world, body);
         droppedNames.delete(body.labelText);
       });
+
       dropBodies = dropBodies.filter(body => !targets.includes(body));
     }
 
     async function loadRowsFromSheet() {
-      const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now());
-      if (!response.ok) throw new Error("시트 데이터를 불러오지 못했습니다.");
+      const response = await fetch(SHEET_CSV_URL + "&cacheBust=" + Date.now(), {
+        method: "GET"
+      });
+
+      if (!response.ok) {
+        throw new Error("시트 데이터를 불러오지 못했습니다.");
+      }
+
       const text = await response.text();
       return csvToObjects(text);
     }
 
     function scheduleRefresh() {
       if (syncTimer) clearTimeout(syncTimer);
+
       syncTimer = setTimeout(async () => {
         try {
           await refreshBoard();
@@ -784,18 +833,21 @@
       resetMatterWorld();
 
       const labels = getActiveRows(rows).map(r =>
-        r.mode === "pair" && r.groupCode ? `${r.groupCode} ${r.rawName}` : (r.displayName || r.rawName)
+        r.mode === "pair" && r.groupCode
+          ? `${r.groupCode} ${r.rawName}`
+          : (r.displayName || r.rawName)
       );
 
       let index = 0;
-      const timer = setInterval(() => {
+      refreshAnimationTimer = setInterval(() => {
         if (index >= labels.length) {
-          clearInterval(timer);
+          clearInterval(refreshAnimationTimer);
+          refreshAnimationTimer = null;
           return;
         }
         dropName(labels[index]);
         index++;
-      }, 220);
+      }, 180);
     }
 
     async function postToGas(payload) {
@@ -805,10 +857,23 @@
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error("Apps Script 응답을 해석하지 못했습니다.");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "요청 처리에 실패했습니다.");
+      }
+
       if (!data.success) {
         throw new Error(data.message || "요청 처리에 실패했습니다.");
       }
+
       return data;
     }
 
@@ -822,6 +887,7 @@
         mode: "solo",
         status: "active"
       };
+
       lastRows.push(newRow);
       renderSummary(lastRows);
       dropName(rawName);
@@ -837,6 +903,7 @@
         mode: "pair",
         status: "active"
       };
+
       const row2 = {
         createdAt: new Date().toISOString(),
         displayName: `${groupCode} ${rawName2}`,
@@ -846,6 +913,7 @@
         mode: "pair",
         status: "active"
       };
+
       lastRows.push(row1, row2);
       renderSummary(lastRows);
       dropName(`${groupCode} ${rawName1}`);
@@ -862,13 +930,18 @@
             r.status = "cancelled";
           }
         });
-        removeDroppedByLabel(body => typeof body.labelText === "string" && body.labelText.startsWith(target.groupCode + " "));
+
+        removeDroppedByLabel(body =>
+          typeof body.labelText === "string" &&
+          body.labelText.startsWith(target.groupCode + " ")
+        );
       } else {
         lastRows.forEach(r => {
           if (r.status === "active" && r.rawName === rawName) {
             r.status = "cancelled";
           }
         });
+
         removeDroppedByLabel(body => body.labelText === rawName);
       }
 
@@ -877,6 +950,7 @@
 
     async function submitSolo() {
       const rawName = normalizeName(els.soloName.value);
+
       if (!rawName) {
         setNotice(els.submitNotice, "닉네임을 입력해 주세요.", "error");
         return;
@@ -892,11 +966,11 @@
         await postToGas({ action: "submitSolo", rawName });
         optimisticAddSolo(rawName);
 
-        setNotice(els.submitNotice, `신청 완료! 🤩`, "success");
+        setNotice(els.submitNotice, "신청 완료! 🤩", "success");
         els.soloName.value = "";
         scheduleRefresh();
       } catch (error) {
-        setNotice(els.submitNotice, error.message, "error");
+        setNotice(els.submitNotice, error.message || "신청 중 오류가 발생했습니다.", "error");
       } finally {
         els.soloSubmit.disabled = false;
         els.soloSubmit.textContent = originalText;
@@ -908,12 +982,12 @@
       const rawName2 = normalizeName(els.pairName2.value);
 
       if (!rawName1 || !rawName2) {
-        setNotice(els.submitNotice, "같이 신청할 두 분의 닉네임을 모두 입력해 주세요.", "error");
+        setNotice(els.submitNotice, "함께 신청할 두 분의 닉네임을 모두 입력해 주세요.", "error");
         return;
       }
 
       if (rawName1 === rawName2) {
-        setNotice(els.submitNotice, "같은 닉네임 두 개로는 같이 신청할 수 없습니다.", "error");
+        setNotice(els.submitNotice, "같은 닉네임으로는 함께 신청할 수 없습니다.", "error");
         return;
       }
 
@@ -922,18 +996,18 @@
       try {
         els.pairSubmit.disabled = true;
         els.pairSubmit.textContent = "신청 중...";
-        setNotice(els.submitNotice, "같이 신청 중...", "");
+        setNotice(els.submitNotice, "함께 신청 중...", "");
 
         const groupCode = pickNextGroupCode(lastRows);
         await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
         optimisticAddPair(rawName1, rawName2, groupCode);
 
-        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료!`, "success");
+        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료! 🤩`, "success");
         els.pairName1.value = "";
         els.pairName2.value = "";
         scheduleRefresh();
       } catch (error) {
-        setNotice(els.submitNotice, error.message, "error");
+        setNotice(els.submitNotice, error.message || "함께 신청 중 오류가 발생했습니다.", "error");
       } finally {
         els.pairSubmit.disabled = false;
         els.pairSubmit.textContent = originalText;
@@ -942,6 +1016,7 @@
 
     async function cancelForm() {
       const rawName = normalizeName(els.cancelName.value);
+
       if (!rawName) {
         setNotice(els.cancelNotice, "취소할 닉네임을 입력해 주세요.", "error");
         return;
@@ -957,11 +1032,11 @@
         await postToGas({ action: "cancel", rawName });
         optimisticCancel(rawName);
 
-        setNotice(els.cancelNotice, '취소 완료 😭`, "success");
+        setNotice(els.cancelNotice, "취소 완료 😭", "success");
         els.cancelName.value = "";
         scheduleRefresh();
       } catch (error) {
-        setNotice(els.cancelNotice, error.message, "error");
+        setNotice(els.cancelNotice, error.message || "취소 중 오류가 발생했습니다.", "error");
       } finally {
         els.cancelSubmit.disabled = false;
         els.cancelSubmit.textContent = originalText;
@@ -978,26 +1053,29 @@
       els.soloName.addEventListener("keydown", e => {
         if (e.key === "Enter") submitSolo();
       });
+
       els.pairName1.addEventListener("keydown", e => {
         if (e.key === "Enter") submitPair();
       });
+
       els.pairName2.addEventListener("keydown", e => {
         if (e.key === "Enter") submitPair();
       });
+
       els.cancelName.addEventListener("keydown", e => {
         if (e.key === "Enter") cancelForm();
       });
     }
 
     window.addEventListener("load", async () => {
-      initMatter();
-      patchRenderText();
-      bindEvents();
       try {
+        initMatter();
+        patchRenderText();
+        bindEvents();
         await refreshBoard();
       } catch (error) {
-        setNotice(els.submitNotice, error.message, "error");
-        
+        console.error(error);
+        setNotice(els.submitNotice, error.message || "초기 로딩 중 오류가 발생했습니다.", "error");
       }
     });
   </script>
