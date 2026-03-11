@@ -389,7 +389,7 @@
         <div class="eyebrow">SpoonLabs Random Lunch</div>
         <h1>랜덤런치 신청하기🍕</h1>
         <p class="hero-desc">
-          새로운 동료들과 함께하는 여유로운 점심을 원하신다면, 지금 바로 랜덤런치를 신청하세요!
+          새로운 동료들과 함께하는 여유로운 점심을 원하신다면, 지금 바로 신청하세요!
         </p>
       </div>
     </section>
@@ -437,8 +437,6 @@
           <div class="panel-title">취소하기</div>
           <div class="form-grid">
             <div class="field">
-              <label for="cancelName">신청한 닉네임</label>
-              <input id="cancelName" type="text" placeholder="취소할 닉네임을 입력해 주세요" />
             </div>
             <div class="btn-row">
               <button class="btn btn-secondary" id="cancelSubmit" type="button">신청 취소</button>
@@ -449,29 +447,11 @@
       </div>
 
       <div class="right-col">
-        <div class="summary-grid">
-          <div class="summary-card">
-            <div class="summary-label">현재 활성 신청자</div>
-            <div class="summary-value" id="summaryTotal">0</div>
-            <div class="summary-sub">취소되지 않은 신청 기준</div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-label">혼자 신청</div>
-            <div class="summary-value" id="summarySolo">0</div>
-            <div class="summary-sub">개별 신청자 수</div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-label">같이 신청팀</div>
-            <div class="summary-value" id="summaryPair">0</div>
-            <div class="summary-sub">같은 조로 묶인 팀 수</div>
-          </div>
-        </div>
 
         <div class="board">
           <div class="board-head">
             <div>
-              <div class="board-title">현재 신청자 보드</div>
-              <div class="board-sub">Google Sheets 현재 데이터 기준</div>
+              <div class="board-title">신청 현황</div>
             </div>
           </div>
 
@@ -485,11 +465,6 @@
                 <div class="empty" id="soloEmpty" style="display:none;">아직 신청자가 없습니다.</div>
               </div>
 
-              <div class="list-card">
-                <h4>같이 신청팀</h4>
-                <div class="chips" id="pairList"></div>
-                <div class="empty" id="pairEmpty" style="display:none;">아직 같이 신청한 팀이 없습니다.</div>
-              </div>
             </div>
           </div>
         </div>
@@ -1022,7 +997,7 @@
       const rawName = normalizeName(els.cancelName.value);
 
       if (!rawName) {
-        setNotice(els.cancelNotice, "취소할 닉네임을 입력해 주세요.", "error");
+        setNotice(els.cancelNotice, "신청을 취소할 닉네임을 입력해 주세요.", "error");
         return;
       }
 
