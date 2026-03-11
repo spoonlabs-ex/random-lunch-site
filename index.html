@@ -794,11 +794,7 @@
       renderSummary(rows);
       resetMatterWorld();
 
-      const labels = getActiveRows(rows).map(r =>
-        r.mode === "pair" && r.groupCode
-          ? `${r.groupCode} ${r.rawName}`
-          : (r.displayName || r.rawName)
-      );
+      const labels = getActiveRows(rows).map(r => r.rawName || r.displayName);
 
       let index = 0;
       refreshAnimationTimer = setInterval(() => {
@@ -878,8 +874,8 @@
 
       lastRows.push(row1, row2);
       renderSummary(lastRows);
-      dropName(`${groupCode} ${rawName1}`);
-      dropName(`${groupCode} ${rawName2}`);
+      dropName(rawName1);
+      dropName(rawName2);
     }
 
     function optimisticCancel(rawName) {
@@ -893,10 +889,14 @@
           }
         });
 
-        removeDroppedByLabel(body =>
-          typeof body.labelText === "string" &&
-          body.labelText.startsWith(target.groupCode + " ")
-        );
+      const pairNames = lastRows
+        .filter(r => r.groupCode === target.groupCode)
+        .map(r => r.rawName);
+      
+      removeDroppedByLabel(body =>
+        typeof body.labelText === "string" &&
+        pairNames.includes(body.labelText)
+      );
       } else {
         lastRows.forEach(r => {
           if (r.status === "active" && r.rawName === rawName) {
