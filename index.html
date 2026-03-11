@@ -502,13 +502,8 @@
       submitNotice: document.getElementById("submitNotice"),
       cancelNotice: document.getElementById("cancelNotice"),
       world: document.getElementById("world"),
-      summaryTotal: document.getElementById("summaryTotal"),
-      summarySolo: document.getElementById("summarySolo"),
-      summaryPair: document.getElementById("summaryPair"),
       soloList: document.getElementById("soloList"),
-      pairList: document.getElementById("pairList"),
       soloEmpty: document.getElementById("soloEmpty"),
-      pairEmpty: document.getElementById("pairEmpty")
     };
 
     function setNotice(target, message, type = "") {
@@ -596,12 +591,7 @@
           pairGroups.get(r.groupCode).push(r);
         });
 
-      els.summaryTotal.textContent = String(activeRows.length);
-      els.summarySolo.textContent = String(soloRows.length);
-      els.summaryPair.textContent = String(pairGroups.size);
-
       els.soloList.innerHTML = "";
-      els.pairList.innerHTML = "";
 
       if (!soloRows.length) {
         els.soloEmpty.style.display = "block";
@@ -616,14 +606,11 @@
       }
 
       if (!pairGroups.size) {
-        els.pairEmpty.style.display = "block";
       } else {
-        els.pairEmpty.style.display = "none";
         [...pairGroups.entries()].forEach(([groupCode, members]) => {
           const chip = document.createElement("span");
           chip.className = "chip";
           chip.textContent = `${groupCode} ${members.map(m => m.rawName).join(" + ")}`;
-          els.pairList.appendChild(chip);
         });
       }
     }
