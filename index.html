@@ -980,13 +980,13 @@
         const groupCode = pickNextGroupCode(lastRows);
 
         optimisticAddPair(rawName1, rawName2, groupCode);
-        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 중...`);
+        setNotice(els.submitNotice, `${rawName1} / ${rawName2} 신청 중...`);
         els.pairName1.value = "";
         els.pairName2.value = "";
 
         await postToGas({ action: "submitPair", rawName1, rawName2, groupCode });
 
-        setNotice(els.submitNotice, `${groupCode} ${rawName1} / ${rawName2} 신청 완료! 🤩`, "success");
+        setNotice(els.submitNotice, `${rawName1} / ${rawName2} 신청 완료! 🤩`, "success");
         scheduleRefresh();
       } catch (error) {
         setNotice(els.submitNotice, error.message || "함께 신청 중 오류가 발생했습니다.", "error");
