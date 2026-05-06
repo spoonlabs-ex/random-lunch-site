@@ -77,36 +77,13 @@
     .form-grid { display: grid; gap: 16px; }
     .field label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--sub); font-weight: 600; }
     
-/* 입력창 및 드롭박스 공통 디자인 */
     .field input, .field select, .cancel-input {
       width: 100%; height: 50px; border-radius: 14px; border: 1px solid rgba(60,35,20,0.09);
       background: rgba(255,255,255,0.9); padding: 0 14px; font-size: 15px; 
       font-family: inherit; outline: none; color: var(--text);
-      transition: all 0.2s ease;
     }
-
-    /* 드롭박스 전용 디자인 (못생긴 기본 화살표 교체) */
-    .field select {
-      color: #7d6c5d; /* 글자색을 부드러운 갈색으로 */
-      cursor: pointer;
-      appearance: none; /* 브라우저 기본 화살표 숨기기 */
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237d6c5d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: calc(100% - 18px) center; /* 화살표 위치 */
-      padding-right: 40px;
-    }
-
-    /* 클릭 시 테두리 강조 */
-    .field select:focus, .field input:focus {
-      border-color: var(--accent);
-      background: #fff;
-    }
-
-    /* 드롭다운 목록 내부 스타일 */
-    .field select option {
-      color: var(--text);
-      background-color: #fff;
+    .field select { color: #999; }
+    .field select option { color: var(--text); }
     ::placeholder { color: #999; opacity: 1; }
 
     /* 주제 설명 칸 디자인 업데이트 (핑크 선 제거, 연한 배경 추가) */
