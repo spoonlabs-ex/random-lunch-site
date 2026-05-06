@@ -62,39 +62,40 @@
 
     .content { display: grid; grid-template-columns: 420px 1fr; gap: 20px; align-items: start; }
     .left-col { display: grid; gap: 16px; position: sticky; top: 20px; }
-    .panel { background: var(--card); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); box-shadow: var(--shadow); border-radius: var(--radius-xl); padding: 22px; }
-    .panel-title { margin: 0 0 18px; font-size: 18px; font-weight: 700; }
+    
+    /* 패널 및 현황판 디자인 통일 */
+    .panel, .board { 
+      background: var(--card); 
+      backdrop-filter: blur(12px); 
+      border: 1px solid rgba(255,255,255,0.65); 
+      box-shadow: var(--shadow); 
+      border-radius: var(--radius-xl); 
+      padding: 22px; 
+    }
+    .panel-title, .board-head { margin: 0 0 18px; font-size: 18px; font-weight: 700; padding: 0; }
 
     .form-grid { display: grid; gap: 16px; }
     .field label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--sub); font-weight: 600; }
     
-    /* 입력창 및 드롭박스 디자인 통일 */
     .field input, .field select, .cancel-input {
       width: 100%; height: 50px; border-radius: 14px; border: 1px solid rgba(60,35,20,0.09);
       background: rgba(255,255,255,0.9); padding: 0 14px; font-size: 15px; 
-      font-family: inherit; outline: none;
-      color: var(--text);
+      font-family: inherit; outline: none; color: var(--text);
     }
-
-    /* 드롭박스 폰트 색상을 플레이스홀더 색상과 동일하게 설정 */
-    .field select {
-      color: #999; /* 일반적인 플레이스홀더 색상과 유사하게 조정 */
-    }
-    .field select option {
-      color: var(--text); /* 옵션 목록은 잘 보이게 검정색 계열로 유지 */
-    }
-
+    .field select { color: #999; }
+    .field select option { color: var(--text); }
     ::placeholder { color: #999; opacity: 1; }
 
+    /* 주제 설명 칸 디자인 업데이트 (핑크 선 제거, 연한 배경 추가) */
     .topic-desc-box {
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 12px;
-      padding: 12px 14px;
+      background: rgba(255, 127, 115, 0.05); /* 버튼 색상과 어울리는 아주 연한 핑크/살구색 */
+      border-radius: 14px;
+      padding: 14px;
       font-size: 13px;
-      line-height: 1.5;
-      color: #6d4d2e;
-      border-left: 4px solid var(--accent);
+      line-height: 1.6;
+      color: #7d6c5d;
       margin-top: -4px;
+      border: 1px solid rgba(255, 127, 115, 0.1);
     }
     
     .btn-primary {
@@ -108,14 +109,14 @@
     }
 
     .notice { margin-top: 12px; font-size: 13px; min-height: 20px; }
-    .notice.error { color: #d85b5b; }
     .notice.success { color: #2f8a57; }
+    .notice.error { color: #d85b5b; }
 
-    .board { background: var(--card); border: 1px solid rgba(255,255,255,0.65); box-shadow: var(--shadow); border-radius: 28px; overflow: hidden; }
-    .board-head { padding: 20px 24px 0; font-size: 18px; font-weight: 700; }
-    #world { width: 100%; height: 540px; background: transparent; position: relative; }
-    .lists { padding: 0 20px 20px; }
-    .list-card { background: rgba(255,255,255,0.72); border: 1px solid rgba(60,35,20,0.07); border-radius: 18px; padding: 16px; }
+    .board { overflow: hidden; padding: 22px 0 0 0; } /* 현황판 내부 여백 조정 */
+    .board-head { padding: 0 22px; }
+    #world { width: 100%; height: 500px; background: transparent; position: relative; }
+    .lists { padding: 10px 22px 22px; }
+    .list-card { background: rgba(255,255,255,0.6); border: 1px solid rgba(60,35,20,0.05); border-radius: 18px; padding: 16px; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { border-radius: 999px; background: rgba(255,184,107,0.20); color: #6d4d2e; padding: 9px 14px; font-size: 13px; font-weight: 700; }
 
@@ -191,6 +192,8 @@
       "[완전 랜덤] 운명의 데스티니 🎲": "위 네 가지 항목에 해당하지 않는, 또는 완전한 랜덤 조합을 원하는 구성원들이 함께하는 런치"
     };
 
+    const FOOD_EMOJIS = ["🍔","🍕","🍣","🍜","🥗"," taco","🍙","🥪","🍗","🍤","🍩","🍪","🍎","🍊","🍰"];
+
     let engine, render, runner, worldWidth, worldHeight;
     let dropBodies = [];
 
@@ -243,21 +246,32 @@
           ctx.translate(body.position.x, body.position.y);
           ctx.rotate(body.angle);
           ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          
+          // 닉네임 텍스트
           ctx.font = "bold 14px Pretendard";
           ctx.fillStyle = "#6d4d2e";
-          ctx.fillText(body.labelText, 0, 5);
+          ctx.fillText(body.labelText, 10, 2);
+          
+          // 음식 이모지
+          ctx.font = "16px Arial";
+          ctx.fillText(body.emoji, -((body.w/2)-18), 0);
+          
           ctx.restore();
         });
       };
     }
 
     function createNameBody(label) {
-      const w = Math.max(80, label.length * 14 + 30);
+      const w = Math.max(100, label.length * 12 + 50);
+      const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
       const body = Matter.Bodies.rectangle(
-        worldWidth/2 + (Math.random()-0.5)*100, -50, w, 40, 
-        { chamfer: { radius: 15 }, restitution: 0.5, render: { fillStyle: "#ffd4a0" } }
+        worldWidth/2 + (Math.random()-0.5)*120, -50, w, 40, 
+        { chamfer: { radius: 18 }, restitution: 0.5, render: { fillStyle: "#ffd4a0", strokeStyle: "rgba(0,0,0,0.05)", lineWidth: 1 } }
       );
       body.labelText = label;
+      body.emoji = emoji;
+      body.w = w;
       dropBodies.push(body);
       Matter.Composite.add(engine.world, body);
     }
@@ -271,9 +285,8 @@
         dropBodies.forEach(b => Matter.Composite.remove(engine.world, b));
         dropBodies = [];
         
-        lines.forEach(line => {
+        lines.forEach((line, idx) => {
           const parts = line.split(",");
-          // CSV에서 이름과 상태 열 추출 (구조에 따라 인덱스 확인 필요)
           const name = parts[2]?.replace(/"/g, "").trim(); 
           const status = parts[7]?.replace(/"/g, "").trim();
 
@@ -282,13 +295,14 @@
             chip.className = "chip";
             chip.textContent = name;
             els.soloList.appendChild(chip);
-            createNameBody(name);
+            
+            // 약간의 시차를 두고 떨어뜨리기
+            setTimeout(() => createNameBody(name), idx * 100);
           }
         });
       } catch (err) { console.error("데이터 로드 실패", err); }
     }
 
-    // 신청하기 로직 보강
     els.btnSubmit.onclick = async () => {
       const name = els.userName.value.trim();
       const topic = els.lunchTopic.value;
@@ -303,16 +317,13 @@
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "submitPair", rawName1: name, rawName2: topic, groupCode: "TOPIC" })
         });
-        
         els.submitNotice.className = "notice success";
-        els.submitNotice.textContent = "신청 완료! 실시간 현황을 업데이트합니다.";
+        els.submitNotice.textContent = "신청 완료! 실시간 현황이 업데이트됩니다.";
         els.userName.value = "";
-        
-        // 1.5초 후 데이터 다시 읽어오기
-        setTimeout(loadData, 1500);
+        setTimeout(loadData, 1000);
       } catch(e) {
         els.submitNotice.className = "notice error";
-        els.submitNotice.textContent = "네트워크 오류가 발생했습니다.";
+        els.submitNotice.textContent = "신청 중 오류가 발생했습니다.";
       } finally {
         els.btnSubmit.disabled = false;
       }
@@ -321,33 +332,21 @@
     els.btnCancel.onclick = async () => {
       const name = els.cancelName.value.trim();
       if(!name) return alert("취소할 닉네임을 입력해주세요!");
-      
       els.btnCancel.disabled = true;
       try {
         await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          method: "POST", headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "cancel", rawName: name })
         });
-        els.cancelNotice.textContent = "취소 처리가 완료되었습니다.";
+        els.cancelNotice.textContent = "취소되었습니다.";
         els.cancelName.value = "";
-        setTimeout(loadData, 1500);
-      } catch(e) {
-        els.cancelNotice.textContent = "오류 발생";
-      } finally {
-        els.btnCancel.disabled = false;
-      }
+        setTimeout(loadData, 1000);
+      } catch(e) { els.cancelNotice.textContent = "오류 발생"; }
+      finally { els.btnCancel.disabled = false; }
     };
 
     els.lunchTopic.onchange = updateDescription;
-
-    window.onload = () => { 
-      initMatter(); 
-      loadData(); 
-      updateDescription(); 
-      // 1분마다 자동으로 현황판 새로고침 (선택 사항)
-      setInterval(loadData, 60000); 
-    };
+    window.onload = () => { initMatter(); loadData(); updateDescription(); };
   </script>
 </body>
 </html>
