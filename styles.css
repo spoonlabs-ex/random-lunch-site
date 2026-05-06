@@ -113,6 +113,33 @@ input {
   border-color: #f97316;
   box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
 }
+/* --- 드롭박스(관심 주제 선택) 전용 부드러운 디자인 추가 --- */
+select#lunchTopic {
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 18px; /* 닉네임 칸과 똑같이 동글동글하게 (각진 부분 제거) */
+  border: none; /* 못생긴 기본 테두리 선 완전 제거! */
+  background-color: white; 
+  box-shadow: 0 2px 10px rgba(251, 146, 60, 0.05); /* 선 대신 아주 연한 그림자로 살짝 입체감만 주기 */
+  color: #6b7280; /* 부드러운 회갈색 폰트 */
+  outline: none;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  
+  /* 브라우저 기본 화살표 숨기고 예쁜 주황색 화살표로 교체 */
+  appearance: none; 
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23f97316' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 18px) center;
+}
+
+/* 드롭박스를 클릭했을 때 나타나는 은은한 효과 */
+select#lunchTopic:focus {
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12); /* 닉네임 칸 클릭했을 때와 동일한 효과 */
+}
 
 .button-row {
   display: grid;
