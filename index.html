@@ -302,6 +302,75 @@ input::placeholder{ color: #c8b6a2; }
   padding: 6px 2px;
 }
 
+/* ==========================================================
+   중복 신청 확인 모달
+   (같은 닉네임으로 이미 신청되어 있을 때 주제 변경 여부를 확인)
+   ========================================================== */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(63, 58, 53, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+
+.modal-overlay.open{
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-card{
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(63,58,53,0.25);
+  padding: 32px 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  transform: translateY(14px);
+  transition: transform .2s ease;
+}
+
+.modal-overlay.open .modal-card{ transform: translateY(0); }
+
+.modal-card .modal-emoji{
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.modal-card h3{
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.modal-card p{
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.modal-card p strong{
+  color: var(--orange-deep);
+  font-weight: 700;
+}
+
+.modal-actions{
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions .btn{
+  margin-top: 0;
+}
+
 /* ---------- 모바일 대응 (한 줄로 쌓기) ---------- */
 @media (max-width: 900px){
   body{ padding: 24px 14px 60px; }
@@ -334,7 +403,7 @@ input::placeholder{ color: #c8b6a2; }
         <label class="field-label" for="userName">닉네임</label>
         <input type="text" id="userName" placeholder="예 : Bailey" maxlength="20" />
 
-        <label class="field-label" for="topicToggle">주제 선택</label>
+        <label class="field-label" for="topicToggle">주제 선택 (한 가지 주제만 선택 가능)</label>
 
         <!-- 커스텀 드롭다운 (기본 select 대신 사이트 톤에 맞춘 자체 UI) -->
         <div class="dropdown" id="topicDropdown">
@@ -353,14 +422,14 @@ input::placeholder{ color: #c8b6a2; }
 
         <div id="topicDescription"></div>
 
-        <button class="btn" id="applyBtn">신청하기 🍙</button>
+        <button class="btn" id="applyBtn">신청하기</button>
         <div class="msg" id="applyMsg"></div>
       </section>
 
       <section class="card">
         <h2>신청 취소하기</h2>
         <input type="text" id="cancelName" class="cancel-input" placeholder="취소할 닉네임을 입력해 주세요." maxlength="20" />
-        <button class="btn btn-cancel" id="cancelBtn">취소하기 🍜</button>
+        <button class="btn btn-cancel" id="cancelBtn">취소하기</button>
         <div class="msg" id="cancelMsg"></div>
       </section>
 
@@ -373,6 +442,19 @@ input::placeholder{ color: #c8b6a2; }
       <div id="chipBoard"><span class="chip-empty">불러오는 중 ...</span></div>
     </section>
 
+  </div>
+</div>
+
+<!-- ================= 중복 신청 확인 모달 ================= -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-card">
+    <div class="modal-emoji">🤔</div>
+    <h3>이미 신청하셨어요</h3>
+    <p id="modalMessage"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-cancel" id="modalCancelBtn">그대로 둘게요</button>
+      <button type="button" class="btn" id="modalConfirmBtn">주제 바꾸기</button>
+    </div>
   </div>
 </div>
 
@@ -441,6 +523,36 @@ document.addEventListener("click", (e) => {
 });
 
 updateDescription();
+
+/* ==========================================================
+   중복 신청 확인 모달 로직
+   ========================================================== */
+const confirmOverlay = document.getElementById("confirmOverlay");
+const modalMessage = document.getElementById("modalMessage");
+const modalCancelBtn = document.getElementById("modalCancelBtn");
+const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+
+/* 이미 신청한 주제(oldTopic)와 새로 고른 주제(newTopic)를 보여주고
+   사용자가 "주제 바꾸기" 또는 "그대로 둘게요" 중 선택하게 함.
+   선택 결과를 Promise<boolean> 으로 반환 (true = 변경 진행) */
+function askTopicChangeConfirm(oldTopic, newTopic){
+  return new Promise((resolve) => {
+    modalMessage.innerHTML = `이미 <strong>${oldTopic}</strong> 주제로 신청하셨어요.<br>이 주제 대신 <strong>${newTopic}</strong>(으)로 바꿀까요?`;
+    confirmOverlay.classList.add("open");
+
+    function cleanup(result){
+      confirmOverlay.classList.remove("open");
+      modalConfirmBtn.removeEventListener("click", onConfirm);
+      modalCancelBtn.removeEventListener("click", onCancel);
+      resolve(result);
+    }
+    function onConfirm(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+
+    modalConfirmBtn.addEventListener("click", onConfirm);
+    modalCancelBtn.addEventListener("click", onCancel);
+  });
+}
 
 /* ==========================================================
    Matter.js 물리 엔진 : 신청한 사람의 "닉네임 + 무작위 음식 이모지"만
@@ -594,11 +706,29 @@ applyBtn.addEventListener("click", async () => {
 
   applyBtn.disabled = true;
   applyMsg.className = "msg";
-  applyMsg.textContent = "신청하는 중 ... ⏳";
+  applyMsg.textContent = "확인하는 중 ... ⏳";
 
   try{
-    /* 주의: Content-Type을 직접 지정하지 않아야 브라우저가 보내는 사전 확인 요청(CORS preflight)을
+    /* 1단계: 이 닉네임이 이미 신청되어 있는지 조용히 확인 */
+    const checkRes = await fetch(GAS_URL + "?action=check&name=" + encodeURIComponent(name));
+    const checkData = await checkRes.json();
+
+    if (checkData.ok && checkData.active && checkData.topic && checkData.topic !== topic){
+      applyMsg.textContent = "";
+      const confirmed = await askTopicChangeConfirm(checkData.topic, topic);
+      if (!confirmed){
+        applyMsg.className = "msg";
+        applyMsg.textContent = "";
+        return; // 사용자가 "그대로 둘게요"를 선택 → 아무것도 안 하고 종료
+      }
+    }
+
+    /* 2단계: 실제 신청(또는 주제 변경) 처리
+       주의: Content-Type을 직접 지정하지 않아야 브라우저가 보내는 사전 확인 요청(CORS preflight)을
        구글 앱스 스크립트가 처리하지 못해 생기는 오류를 피할 수 있습니다. 그대로 두세요! */
+    applyMsg.className = "msg";
+    applyMsg.textContent = "신청하는 중 ... ⏳";
+
     const res = await fetch(GAS_URL, {
       method: "POST",
       body: JSON.stringify({ action: "apply", name: name, topic: topic })
@@ -650,7 +780,7 @@ cancelBtn.addEventListener("click", async () => {
     if (!data.ok){
       // 서버가 "신청한 적 없는 닉네임"이라고 응답한 경우 (또는 다른 에러)
       cancelMsg.className = "msg err";
-      cancelMsg.textContent = "입력하신 닉네임으로 신청된 내역이 없어요. 닉네임을 다시 한 번 확인해 주세요!";
+      cancelMsg.innerHTML = "입력하신 닉네임으로 신청된 내역이 없어요.<br>닉네임을 다시 한 번 확인해 주세요!";
       return;
     }
 
