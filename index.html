@@ -533,7 +533,7 @@ let knownNames = new Set();
 function renderChips(names){
   chipBoard.innerHTML = "";
   if (names.length === 0){
-    chipBoard.innerHTML = '<span class="chip-empty">아직 아무도 없어요. 첫 번째 주인공이 되어주세요! 🌟</span>';
+    chipBoard.innerHTML = '<span class="chip-empty">아직 아무도 신청하지 않았어요. 첫 번째 주인공이 되어주세요! 🌟</span>';
     return;
   }
   names.forEach(n => {
@@ -574,7 +574,7 @@ async function loadParticipants(isFirstLoad){
       knownNames = new Set(names);
     }
   }catch(e){
-    chipBoard.innerHTML = '<span class="chip-empty">현황을 불러오지 못했어요. 잠시 후 새로고침 해주세요 🙏</span>';
+    chipBoard.innerHTML = '<span class="chip-empty"> 신청 현황을 불러오지 못했어요. 잠시 후 새로고침 해주세요 🙏</span>';
   }
 }
 
