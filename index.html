@@ -449,10 +449,10 @@ input::placeholder{ color: #c8b6a2; }
 <div class="modal-overlay" id="confirmOverlay">
   <div class="modal-card">
     <div class="modal-emoji">🤔</div>
-    <h3>이미 신청하셨어요</h3>
+    <h3>잠깐! 이미 신청된 내역이 있어요</h3>
     <p id="modalMessage"></p>
     <div class="modal-actions">
-      <button type="button" class="btn btn-cancel" id="modalCancelBtn">그대로 둘게요</button>
+      <button type="button" class="btn btn-cancel" id="modalCancelBtn">그대로 두기</button>
       <button type="button" class="btn" id="modalConfirmBtn">주제 바꾸기</button>
     </div>
   </div>
@@ -537,7 +537,7 @@ const modalConfirmBtn = document.getElementById("modalConfirmBtn");
    선택 결과를 Promise<boolean> 으로 반환 (true = 변경 진행) */
 function askTopicChangeConfirm(oldTopic, newTopic){
   return new Promise((resolve) => {
-    modalMessage.innerHTML = `이미 <strong>${oldTopic}</strong> 주제로 신청하셨어요.<br>이 주제 대신 <strong>${newTopic}</strong>(으)로 바꿀까요?`;
+    modalMessage.innerHTML = `이미 <strong>${oldTopic}</strong><br>주제로 신청하셨어요.<br>이 주제 대신 <strong>${newTopic}</strong>(으)로 바꿀까요?`;
     confirmOverlay.classList.add("open");
 
     function cleanup(result){
