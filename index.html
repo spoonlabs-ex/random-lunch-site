@@ -332,9 +332,9 @@ input::placeholder{ color: #c8b6a2; }
         <h2>신청하기</h2>
 
         <label class="field-label" for="userName">닉네임</label>
-        <input type="text" id="userName" placeholder="예: Bailey" maxlength="20" />
+        <input type="text" id="userName" placeholder="예 : Bailey" maxlength="20" />
 
-        <label class="field-label" for="topicToggle">관심 주제 선택</label>
+        <label class="field-label" for="topicToggle">주제 선택</label>
 
         <!-- 커스텀 드롭다운 (기본 select 대신 사이트 톤에 맞춘 자체 UI) -->
         <div class="dropdown" id="topicDropdown">
@@ -392,7 +392,7 @@ const DESCRIPTIONS = {
   "[러닝] 도심 속 러너들 🏃":
     "숨이 턱 끝까지 차오르는 짜릿함을 즐기는 프로 러너부터, 이제 막 운동화를 신고 현관문을 나서려는 러닝 초보까지! 러닝 꿀팁과 건강한 에너지를 나누는 활력 충전 런치",
   "[야구] 직관의 설렘부터 방구석 응원까지 ⚾":
-    "퇴근길 야구장으로 달려가는 열정파 팬부터, 집에서 챙겨보는 방구석 응원러까지! 응원하는 구단은 달라도 야구 특유의 뜨거운 열정과 직관의 설렘을 나누며 하나 되는 런치",
+    "퇴근 후 야구장으로 달려가는 열정파부터, 집에서 챙겨보는 방구석 응원러까지! 응원하는 구단은 달라도 야구 특유의 뜨거운 열정과 직관의 설렘을 나누며 하나 되는 런치",
   "[재테크] 월급아 일해라 💰":
     "주식, 부동산, 예적금부터 소소한 짠테크 꿀팁까지! 자본주의 사회에서 살아남기 위한 각자의 투자 소신과 인사이트를 허심탄회하게 나누는 런치 (투자 권유가 아닌 경험 공유 중심!)",
   "[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖":
@@ -594,7 +594,7 @@ applyBtn.addEventListener("click", async () => {
 
   applyBtn.disabled = true;
   applyMsg.className = "msg";
-  applyMsg.textContent = "신청하는 중... ⏳";
+  applyMsg.textContent = "신청하는 중 ... ⏳";
 
   try{
     /* 주의: Content-Type을 직접 지정하지 않아야 브라우저가 보내는 사전 확인 요청(CORS preflight)을
@@ -631,7 +631,7 @@ cancelBtn.addEventListener("click", async () => {
 
   cancelBtn.disabled = true;
   cancelMsg.className = "msg";
-  cancelMsg.textContent = "취소하는 중... ⏳";
+  cancelMsg.textContent = "취소하는 중 ... ⏳";
 
   try{
     await fetch(GAS_URL, {
