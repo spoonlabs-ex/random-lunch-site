@@ -1,347 +1,658 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SpoonLabs 랜덤런치 신청</title>
-  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
-  <style>
-    :root {
-      --bg: #f7efe6;
-      --card: rgba(255,255,255,0.82);
-      --line: rgba(60, 35, 20, 0.08);
-      --text: #2a2118;
-      --sub: #7d6c5d;
-      --accent: #ff7f73;
-      --shadow: 0 18px 40px rgba(80, 47, 25, 0.08);
-      --radius-xl: 24px;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SpoonLabs 랜덤런치 신청</title>
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.85), transparent 28%),
-        radial-gradient(circle at top right, rgba(255,185,140,0.18), transparent 24%),
-        linear-gradient(180deg, #fbf3eb 0%, #f5ede5 100%);
-      color: var(--text);
-      min-height: 100vh;
-    }
+<!-- 폰트 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-    .wrap {
-      width: min(1180px, calc(100% - 32px));
-      margin: 28px auto 48px;
-    }
+<style>
+/* ===============================
+   SpoonLabs 랜덤런치 - 전체 스타일
+   =============================== */
+:root{
+  --bg-top: #fff8ef;
+  --bg-bottom: #ffeede;
+  --card: #ffffff;
+  --field: #fffdf9;
+  --ink: #3f3a35;
+  --ink-soft: #9a8570;
+  --orange: #ffb266;
+  --pink: #ff9d8a;
+  --orange-deep: #f4813f;
+  --peach: #fdeee2;
+  --shadow: 0 10px 30px rgba(244, 158, 90, 0.12);
+  --radius: 18px;
+}
 
-    .hero-card {
-      background: var(--card);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.65);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius-xl);
-      padding: 28px;
-      margin-bottom: 18px;
-    }
+*{ box-sizing: border-box; margin: 0; padding: 0; }
 
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid rgba(60, 35, 20, 0.07);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: var(--sub);
-      margin-bottom: 14px;
-    }
+body{
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--ink);
+  font-family: "Pretendard", -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+}
 
-    h1 { margin: 0; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.04; letter-spacing: -0.03em; }
-    .hero-desc { margin: 14px 0 0; color: var(--sub); line-height: 1.65; font-size: 15px; }
+.wrap{ max-width: 1240px; margin: 0 auto; }
 
-    .content { display: grid; grid-template-columns: 420px 1fr; gap: 20px; align-items: start; }
-    .left-col { display: grid; gap: 16px; position: sticky; top: 20px; }
-    
-    .panel, .board { 
-      background: var(--card); 
-      backdrop-filter: blur(12px); 
-      border: 1px solid rgba(255,255,255,0.65); 
-      box-shadow: var(--shadow); 
-      border-radius: var(--radius-xl); 
-      padding: 22px; 
-    }
-    .panel-title, .board-head { margin: 0 0 18px; font-size: 18px; font-weight: 700; padding: 0; }
+/* ---------- 상단 헤더 카드 (뱃지 → 제목 → 설명 순서) ---------- */
+.hero{
+  background: var(--card);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 36px 44px;
+  margin-bottom: 28px;
+}
 
-    .form-grid { display: grid; gap: 16px; }
-    .field label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--sub); font-weight: 600; }
-    
-    .field input, .cancel-input {
-      width: 100%; height: 50px; border-radius: 14px; border: 1px solid rgba(60,35,20,0.09);
-      background: rgba(255,255,255,0.9); padding: 0 14px; font-size: 15px; 
-      font-family: inherit; outline: none; color: var(--text);
-    }
-    ::placeholder { color: #999; opacity: 1; }
+.hero-badge{
+  display: inline-block;
+  padding: 8px 18px;
+  border: 1px solid #f3e3d2;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--orange-deep);
+  background: var(--peach);
+  margin-bottom: 16px;
+}
 
-    .topic-desc-box {
-      background: rgba(255, 127, 115, 0.05); 
-      border-radius: 14px;
-      padding: 14px;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #7d6c5d;
-      margin-top: -4px;
-      border: 1px solid rgba(255, 127, 115, 0.1);
-    }
-    
-    .btn-primary {
-      width: 100%; border: 0; border-radius: 14px; height: 50px; font-weight: 700; cursor: pointer;
-      background: linear-gradient(135deg, #ff8d80, #ffb76f); color: #fff;
-      box-shadow: 0 14px 22px rgba(255,127,115,0.22); margin-top: 8px;
-    }
-    .btn-secondary {
-      width: 100%; border: 1px solid var(--line); border-radius: 14px; height: 50px; font-weight: 700; cursor: pointer;
-      background: rgba(255,255,255,0.85); color: var(--text); font-size: 14px; margin-top: 8px;
-    }
+.hero h1{
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
 
-    .notice { margin-top: 12px; font-size: 13px; min-height: 20px; }
-    .notice.success { color: #2f8a57; }
-    .notice.error { color: #d85b5b; }
+.hero p{
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
 
-    .board { overflow: hidden; padding: 22px 0 0 0; } 
-    .board-head { padding: 0 22px; }
-    #world { width: 100%; height: 500px; background: transparent; position: relative; }
-    .lists { padding: 10px 22px 22px; }
-    .list-card { background: rgba(255,255,255,0.6); border: 1px solid rgba(60,35,20,0.05); border-radius: 18px; padding: 16px; }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip { border-radius: 999px; background: rgba(255,184,107,0.20); color: #6d4d2e; padding: 9px 14px; font-size: 13px; font-weight: 700; }
+/* ---------- 2단 레이아웃 : 왼쪽(신청/취소) + 오른쪽(현황) ---------- */
+.layout{
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 28px;
+  align-items: start;
+}
 
-    @media (max-width: 1024px) { .content { grid-template-columns: 1fr; } .left-col { position: static; } }
-  </style>
-  <link rel="stylesheet" href="styles.css">
+.left-col{ display: flex; flex-direction: column; gap: 28px; }
+
+/* ---------- 카드 공통 ---------- */
+.card{
+  background: var(--card);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 32px 30px;
+  position: relative;
+}
+
+.card h2{
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 22px;
+}
+
+.field-label{
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 18px 0 10px 2px;
+}
+
+/* ---------- 입력칸 (신청/취소 공통) ---------- */
+input[type="text"]{
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid #f3e3d2;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(196,150,105,0.08);
+  outline: none;
+  transition: box-shadow .18s ease, border-color .18s ease;
+}
+
+input[type="text"]:focus{
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--peach);
+}
+
+input::placeholder{ color: #c8b6a2; }
+
+/* ==========================================================
+   커스텀 주제 드롭다운
+   (브라우저 기본 select 목록 대신 사이트 톤에 맞춘 자체 UI)
+   ========================================================== */
+.dropdown{ position: relative; }
+
+.dropdown-toggle{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid #f3e3d2;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(196,150,105,0.08);
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow .18s ease, border-color .18s ease;
+}
+
+.dropdown-toggle:hover{ border-color: #f0c99a; }
+
+.dropdown.open .dropdown-toggle{
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--peach);
+}
+
+.dropdown-toggle .arrow{
+  flex-shrink: 0;
+  transition: transform .18s ease;
+  color: var(--orange-deep);
+}
+
+.dropdown.open .dropdown-toggle .arrow{ transform: rotate(180deg); }
+
+.dropdown-menu{
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid #f3e3d2;
+  border-radius: var(--radius);
+  box-shadow: 0 16px 32px rgba(196,150,105,0.18);
+  padding: 8px;
+  list-style: none;
+  z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity .16s ease, transform .16s ease, visibility .16s;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.dropdown.open .dropdown-menu{
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu li{
+  padding: 13px 16px;
+  font-size: 14.5px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: background .12s ease, color .12s ease;
+}
+
+.dropdown-menu li:hover{
+  background: var(--peach);
+}
+
+.dropdown-menu li.selected{
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ---------- 주제 설명 박스 ---------- */
+#topicDescription{
+  margin-top: 14px;
+  padding: 18px 20px;
+  background: var(--peach);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: #8a6a4a;
+  min-height: 56px;
+}
+
+/* ---------- 버튼 ---------- */
+.btn{
+  width: 100%;
+  margin-top: 24px;
+  padding: 17px;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: inherit;
+  color: #fff;
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 18px rgba(255,157,110,0.35);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.btn:hover{ transform: translateY(-2px); box-shadow: 0 11px 22px rgba(255,157,110,0.42); }
+.btn:active{ transform: translateY(0); }
+.btn:disabled{ opacity: .55; cursor: wait; transform: none; }
+
+.btn-cancel{
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid #f0dfcd;
+  box-shadow: 0 4px 12px rgba(196,150,105,0.1);
+}
+.btn-cancel:hover{ box-shadow: 0 8px 16px rgba(196,150,105,0.16); }
+
+/* ---------- 안내 메시지 ---------- */
+.msg{
+  margin-top: 14px;
+  font-size: 14px;
+  text-align: center;
+  min-height: 20px;
+  font-weight: 600;
+}
+.msg.ok{ color: #2f9e6e; }
+.msg.err{ color: #e0653a; }
+
+/* ---------- 오른쪽 현황 카드 ---------- */
+#physicsBox{
+  width: 100%;
+  height: 560px;
+  background: var(--field);
+  border: 1px solid #f3e3d2;
+  border-radius: 20px;
+  overflow: hidden;
+}
+#physicsBox canvas{ display: block; }
+
+#chipBoard{
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid #f3e3d2;
+  border-radius: var(--radius);
+  background: var(--field);
+}
+
+.chip{
+  padding: 7px 14px;
+  background: var(--peach);
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #8a6a4a;
+}
+
+.chip-empty{
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  padding: 6px 2px;
+}
+
+/* ---------- 모바일 대응 (한 줄로 쌓기) ---------- */
+@media (max-width: 900px){
+  body{ padding: 24px 14px 60px; }
+  .hero{ padding: 28px 26px; }
+  .hero h1{ font-size: 30px; }
+  .layout{ grid-template-columns: 1fr; }
+  #physicsBox{ height: 340px; }
+}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <section class="hero-card">
-      <div class="eyebrow">SpoonLabs Random Lunch</div>
-      <h1>랜덤런치 신청하기🍕</h1>
-      <p class="hero-desc">관심 있는 주제를 선택하고 새로운 동료들과 즐거운 점심을 함께하세요!</p>
+<div class="wrap">
+
+  <!-- ================= 상단 헤더 : 뱃지 → 제목 → 설명 순서 ================= -->
+  <header class="hero">
+    <span class="hero-badge">SpoonLabs Random Lunch</span>
+    <h1>랜덤런치 신청하기 🍕</h1>
+    <p>관심 있는 주제를 선택하고 새로운 동료들과 즐거운 점심을 함께하세요!</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- ================= 왼쪽 : 신청 + 취소 ================= -->
+    <div class="left-col">
+
+      <section class="card">
+        <h2>신청하기</h2>
+
+        <label class="field-label" for="userName">닉네임</label>
+        <input type="text" id="userName" placeholder="예: Claire" maxlength="20" />
+
+        <label class="field-label" for="topicToggle">관심 주제 선택</label>
+
+        <!-- 커스텀 드롭다운 (기본 select 대신 사이트 톤에 맞춘 자체 UI) -->
+        <div class="dropdown" id="topicDropdown">
+          <button type="button" class="dropdown-toggle" id="topicToggle" aria-haspopup="listbox" aria-expanded="false">
+            <span id="topicToggleText">[러닝] 도심 속 러너들 🏃</span>
+            <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="dropdown-menu" id="topicMenu" role="listbox">
+            <li data-value="[러닝] 도심 속 러너들 🏃" class="selected" role="option">[러닝] 도심 속 러너들 🏃</li>
+            <li data-value="[야구] 직관의 설렘부터 방구석 응원까지 ⚾" role="option">[야구] 직관의 설렘부터 방구석 응원까지 ⚾</li>
+            <li data-value="[재테크] 월급아 일해라 💰" role="option">[재테크] 월급아 일해라 💰</li>
+            <li data-value="[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖" role="option">[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖</li>
+            <li data-value="[완전 랜덤] 운명의 데스티니 🎲" role="option">[완전 랜덤] 운명의 데스티니 🎲</li>
+          </ul>
+        </div>
+
+        <div id="topicDescription"></div>
+
+        <button class="btn" id="applyBtn">신청 완료!</button>
+        <div class="msg" id="applyMsg"></div>
+      </section>
+
+      <section class="card">
+        <h2>취소하기</h2>
+        <input type="text" id="cancelName" class="cancel-input" placeholder="닉네임을 입력하세요." maxlength="20" />
+        <button class="btn btn-cancel" id="cancelBtn">신청 취소</button>
+        <div class="msg" id="cancelMsg"></div>
+      </section>
+
+    </div>
+
+    <!-- ================= 오른쪽 : 실시간 신청 현황 ================= -->
+    <section class="card">
+      <h2>실시간 신청 현황</h2>
+      <div id="physicsBox"></div>
+      <div id="chipBoard"><span class="chip-empty">불러오는 중...</span></div>
     </section>
 
-    <section class="content">
-      <div class="left-col">
-        <div class="panel">
-          <div class="panel-title">신청하기</div>
-          <div class="form-grid">
-            <div class="field">
-              <label>닉네임</label>
-              <input id="userName" type="text" placeholder="예: Claire" />
-            </div>
-            <div class="field">
-              <label>관심 주제 선택</label>
-              <select id="lunchTopic">
-                <option value="[러닝] 도심 속 러너들 🏃">[러닝] 도심 속 러너들 🏃</option>
-                <option value="[야구] 직관의 설렘부터 방구석 응원까지 ⚾">[야구] 직관의 설렘부터 방구석 응원까지 ⚾</option>
-                <option value="[재테크] 월급아 일해라 💰">[재테크] 월급아 일해라 💰</option>
-                <option value="[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖">[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖</option>
-                <option value="[완전 랜덤] 운명의 데스티니 🎲" selected>[완전 랜덤] 운명의 데스티니 🎲</option>
-              </select>
-            </div>
-            <div id="topicDescription" class="topic-desc-box"></div>
-            <button class="btn-primary" id="btnSubmit">신청 완료!</button>
-            <div id="submitNotice" class="notice"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-title">취소하기</div>
-          <div class="form-grid">
-            <input id="cancelName" class="cancel-input" type="text" placeholder="닉네임을 입력하세요." />
-            <button class="btn-secondary" id="btnCancel">신청 취소</button>
-            <div id="cancelNotice" class="notice"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="right-col">
-        <div class="board">
-          <div class="board-head">실시간 신청 현황</div>
-          <div id="world"></div>
-          <div class="lists">
-            <div class="list-card">
-              <div class="chips" id="soloList"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
+</div>
 
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxrbz_FKnZSM3z--nzJwfqCqJ1Dj6F7ygUApyXqcR6n1Dvm4KMFtJdMIjdhE6Pi2K6PZw/exec";
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1_dZyvNXT17ulxe5PsBhkJJ9rdns96V8UHClCm2OMf9g/export?format=csv&gid=0";
+<!-- Matter.js 물리 엔진 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 
-    const DESCRIPTIONS = {
-      "[러닝] 도심 속 러너들 🏃": "숨이 턱 끝까지 차오르는 짜릿한 해방감을 즐기는 프로 러너부터, 이제 막 운동화를 신고 현관문을 나서려는 러닝 초보까지! 러닝 꿀팁과 건강한 에너지를 나누는 활력 충전 런치",
-      "[야구] 직관의 설렘부터 방구석 응원까지 ⚾": "퇴근길 야구장으로 달려가는 열정파 팬부터, 편하게 집에서 챙겨보는 방구석 응원러까지! 응원하는 구단은 달라도 야구 특유의 뜨거운 열정과 직관의 설렘을 나누며 하나 되는 도파민 런치",
-      "[재테크] 월급아 일해라 💰": "주식, 부동산, 예적금부터 소소한 짠테크 꿀팁까지! 자본주의 사회에서 살아남기 위한 각자의 투자 소신 Py와 인사이트를 허심탄회하게 나누는 런치 (투자 권유가 아닌 경험 공유 중심!)",
-      "[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖": "경험과 직관에서 나오는 암묵지는 여전히 사람만의 강력한 무기! AI 도구 활용법부터 나만의 실무 노하우를 어떻게 자산으로 만들고 공유할지 함께 탐구하는 인사이트 가득한 런치",
-      "[완전 랜덤] 운명의 데스티니 🎲": "위 네 가지 항목에 해당하지 않는, 또는 완전한 랜덤 조합을 원하는 구성원들이 함께하는 런치"
-    };
+<script>
+/* ==========================================================
+   ★★★ 딱 한 곳만 수정하면 됩니다 ★★★
+   아래 따옴표 안에 "기존에 쓰던 구글 앱스 스크립트 웹앱 URL"을
+   그대로 붙여넣어 주세요. (https://script.google.com/... 형태)
+   ========================================================== */
+const GAS_URL = "여기에_기존_앱스크립트_URL을_붙여넣으세요";
 
-    const FOOD_EMOJIS = ["🍔","🍕","🍣","🍜","🥗","🌮","🍙","🥪","🍗","🍤","🍩","🍪","🍎","🍊","🍰"];
+/* 주제별 설명 (드롭박스 선택 시 실시간 표시) */
+const DESCRIPTIONS = {
+  "[러닝] 도심 속 러너들 🏃":
+    "숨이 턱 끝까지 차오르는 짜릿함을 즐기는 프로 러너부터, 이제 막 운동화를 신고 현관문을 나서려는 러닝 초보까지! 러닝 꿀팁과 건강한 에너지를 나누는 활력 충전 런치",
+  "[야구] 직관의 설렘부터 방구석 응원까지 ⚾":
+    "퇴근길 야구장으로 달려가는 열정파 팬부터, 집에서 챙겨보는 방구석 응원러까지! 응원하는 구단은 달라도 야구 특유의 뜨거운 열정과 직관의 설렘을 나누며 하나 되는 런치",
+  "[재테크] 월급아 일해라 💰":
+    "주식, 부동산, 예적금부터 소소한 짠테크 꿀팁까지! 자본주의 사회에서 살아남기 위한 각자의 투자 소신과 인사이트를 허심탄회하게 나누는 런치 (투자 권유가 아닌 경험 공유 중심!)",
+  "[AI] AI 시대 암묵지 관리에 진심인 사람들 🤖":
+    "경험과 직관에서 나오는 암묵지는 여전히 사람만의 강력한 무기! AI 활용법부터 나만의 실무 노하우를 어떻게 자산으로 만들고 공유할지 함께 탐구하는 인사이트 가득한 런치",
+  "[완전 랜덤] 운명의 데스티니 🎲":
+    "위 네 가지 항목에 해당하지 않는, 또는 완전한 랜덤 조합을 원하는 구성원들이 함께하는 런치"
+};
 
-    let engine, render, runner, worldWidth, worldHeight;
-    let dropBodies = [];
+/* ---------- 커스텀 드롭다운 동작 ---------- */
+const dropdown = document.getElementById("topicDropdown");
+const topicToggle = document.getElementById("topicToggle");
+const topicToggleText = document.getElementById("topicToggleText");
+const topicMenu = document.getElementById("topicMenu");
+const topicDesc = document.getElementById("topicDescription");
 
-    const els = {
-      userName: document.getElementById("userName"),
-      lunchTopic: document.getElementById("lunchTopic"),
-      topicDescription: document.getElementById("topicDescription"),
-      btnSubmit: document.getElementById("btnSubmit"),
-      submitNotice: document.getElementById("submitNotice"),
-      cancelName: document.getElementById("cancelName"),
-      btnCancel: document.getElementById("btnCancel"),
-      cancelNotice: document.getElementById("cancelNotice"),
-      world: document.getElementById("world"),
-      soloList: document.getElementById("soloList")
-    };
+let selectedTopic = topicMenu.querySelector("li.selected").dataset.value;
 
-    function updateDescription() {
-      const selected = els.lunchTopic.value;
-      els.topicDescription.textContent = DESCRIPTIONS[selected] || "";
+function updateDescription(){
+  topicDesc.textContent = DESCRIPTIONS[selectedTopic] || "";
+}
+
+function closeDropdown(){
+  dropdown.classList.remove("open");
+  topicToggle.setAttribute("aria-expanded", "false");
+}
+
+topicToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  dropdown.classList.toggle("open");
+  topicToggle.setAttribute("aria-expanded", dropdown.classList.contains("open"));
+});
+
+topicMenu.querySelectorAll("li").forEach(li => {
+  li.addEventListener("click", () => {
+    topicMenu.querySelectorAll("li").forEach(el => el.classList.remove("selected"));
+    li.classList.add("selected");
+    selectedTopic = li.dataset.value;
+    topicToggleText.textContent = selectedTopic;
+    updateDescription();
+    closeDropdown();
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (!dropdown.contains(e.target)) closeDropdown();
+});
+
+updateDescription();
+
+/* ==========================================================
+   Matter.js 물리 엔진 : 신청한 사람의 "닉네임 + 무작위 음식 이모지"만
+   블록으로 떨어짐. 신청한 주제는 여기에 절대 노출되지 않음.
+   ========================================================== */
+const FOOD_EMOJIS = ["🍕","🍔","🍜","🍣","🍙","🥗","🍩","🍦","🌮","🥪","🍤","🍗","🍰","🧋","🍎","🥨"];
+const BLOCK_COLORS = ["#ffe3c7","#ffd9a8","#fce8d5","#ffe9b8","#fbd7c2"];
+
+const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
+
+const box = document.getElementById("physicsBox");
+const engine = Engine.create();
+engine.gravity.y = 1;
+
+let boxW = box.clientWidth;
+let boxH = box.clientHeight;
+
+const render = Render.create({
+  element: box,
+  engine: engine,
+  options: {
+    width: boxW,
+    height: boxH,
+    background: "transparent",
+    wireframes: false
+  }
+});
+Render.run(render);
+Runner.run(Runner.create(), engine);
+
+/* 바닥 + 좌우 벽 */
+const wallStyle = { isStatic: true, render: { visible: false } };
+Composite.add(engine.world, [
+  Bodies.rectangle(boxW/2, boxH + 30, boxW * 2, 60, wallStyle),
+  Bodies.rectangle(-30, boxH/2, 60, boxH * 2, wallStyle),
+  Bodies.rectangle(boxW + 30, boxH/2, 60, boxH * 2, wallStyle)
+]);
+
+/* 블록 위에 "이모지 + 닉네임" 글자 그리기 (닉네임만! 주제는 그리지 않음) */
+Events.on(render, "afterRender", () => {
+  const ctx = render.context;
+  ctx.font = "600 13px Pretendard, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  Composite.allBodies(engine.world).forEach(body => {
+    if (!body.chipLabel) return;
+    ctx.save();
+    ctx.translate(body.position.x, body.position.y);
+    ctx.rotate(body.angle);
+    ctx.fillStyle = "#5c4632";
+    ctx.fillText(body.chipLabel, 0, 1);
+    ctx.restore();
+  });
+});
+
+/* 닉네임 블록 떨어뜨리기 (name = 닉네임만 전달, topic 정보는 넘기지 않음) */
+function dropBlock(name){
+  const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+  const label = emoji + " " + name;
+  const width = Math.max(70, label.length * 11 + 30);
+  const x = 50 + Math.random() * (boxW - 100);
+  const block = Bodies.rectangle(x, -30, width, 36, {
+    chamfer: { radius: 16 },
+    restitution: 0.5,
+    friction: 0.3,
+    render: {
+      fillStyle: BLOCK_COLORS[Math.floor(Math.random() * BLOCK_COLORS.length)],
+      strokeStyle: "rgba(244,129,63,0.25)",
+      lineWidth: 1.5
     }
+  });
+  block.chipLabel = label;
+  Composite.add(engine.world, block);
+}
 
-    function initMatter() {
-      const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
-      worldWidth = els.world.clientWidth;
-      worldHeight = els.world.clientHeight;
-      engine = Engine.create();
-      render = Render.create({
-        element: els.world, engine,
-        options: { width: worldWidth, height: worldHeight, wireframes: false, background: "transparent" }
-      });
-      const floor = Bodies.rectangle(worldWidth/2, worldHeight+20, worldWidth+100, 40, { isStatic: true });
-      const leftWall = Bodies.rectangle(-20, worldHeight/2, 40, worldHeight, { isStatic: true });
-      const rightWall = Bodies.rectangle(worldWidth+20, worldHeight/2, 40, worldHeight, { isStatic: true });
-      Composite.add(engine.world, [floor, leftWall, rightWall]);
-      
-      const mouseConstraint = MouseConstraint.create(engine, {
-        mouse: Mouse.create(render.canvas),
-        constraint: { stiffness: 0.2, render: { visible: false } }
-      });
-      Composite.add(engine.world, mouseConstraint);
-      Render.run(render);
-      Runner.run(Runner.create(), engine);
+/* 블록 전부 지우고 다시 떨어뜨리기 (취소 후 새로고침용) */
+function resetBlocks(names){
+  Composite.allBodies(engine.world).forEach(b => {
+    if (b.chipLabel) Composite.remove(engine.world, b);
+  });
+  names.forEach((n, i) => setTimeout(() => dropBlock(n), i * 250));
+}
 
-      const original = Render.world;
-      Render.world = function(inst) {
-        original(inst);
-        const ctx = inst.context;
-        dropBodies.forEach(body => {
-          ctx.save();
-          ctx.translate(body.position.x, body.position.y);
-          ctx.rotate(body.angle);
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          
-          ctx.font = "bold 14px Pretendard";
-          ctx.fillStyle = "#6d4d2e";
-          ctx.fillText(body.labelText, 10, 2);
-          
-          ctx.font = "16px Arial";
-          ctx.fillText(body.emoji, -((body.w/2)-18), 0);
-          
-          ctx.restore();
-        });
-      };
-    }
+/* ==========================================================
+   구글 시트(앱스 스크립트) 연동
+   ========================================================== */
+const chipBoard = document.getElementById("chipBoard");
+let knownNames = new Set();
 
-    function createNameBody(label) {
-      const w = Math.max(100, label.length * 12 + 50);
-      const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
-      const body = Matter.Bodies.rectangle(
-        worldWidth/2 + (Math.random()-0.5)*120, -50, w, 40, 
-        { chamfer: { radius: 18 }, restitution: 0.5, render: { fillStyle: "#ffd4a0", strokeStyle: "rgba(0,0,0,0.05)", lineWidth: 1 } }
-      );
-      body.labelText = label;
-      body.emoji = emoji;
-      body.w = w;
-      dropBodies.push(body);
-      Matter.Composite.add(engine.world, body);
-    }
+function renderChips(names){
+  chipBoard.innerHTML = "";
+  if (names.length === 0){
+    chipBoard.innerHTML = '<span class="chip-empty">아직 아무도 없어요. 첫 번째 주인공이 되어주세요! 🌟</span>';
+    return;
+  }
+  names.forEach(n => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = n; /* 닉네임만 표시, 주제는 표시하지 않음 */
+    chipBoard.appendChild(chip);
+  });
+}
 
-    async function loadData() {
-      try {
-        const res = await fetch(SHEET_CSV_URL + "&cb=" + Date.now());
-        const text = await res.text();
-        const lines = text.trim().split("\n").slice(1);
-        els.soloList.innerHTML = "";
-        dropBodies.forEach(b => Matter.Composite.remove(engine.world, b));
-        dropBodies = [];
-        
-        lines.forEach((line, idx) => {
-          const parts = line.split(",");
-          // 구글 시트 구조에 맞추어 3번째 열(인덱스 2)에서 신청자 '닉네임(rawName)' 추출
-          const name = parts[2]?.replace(/"/g, "").trim(); 
-          const status = parts[7]?.replace(/"/g, "").trim();
+/* 서버 응답에서 이름 목록만 안전하게 뽑아내기 */
+function extractNames(data){
+  const list = Array.isArray(data) ? data : (data.list || data.names || data.data || []);
+  return list
+    .map(item => typeof item === "string" ? item : (item.name || item.userName || ""))
+    .map(s => String(s).trim())
+    .filter(Boolean);
+}
 
-          if (name && status === "active") {
-            const chip = document.createElement("span");
-            chip.className = "chip";
-            chip.textContent = name; // 하단 현황판에 닉네임만 표시
-            els.soloList.appendChild(chip);
-            
-            setTimeout(() => createNameBody(name), idx * 100); // 떨어지는 박스에 닉네임 연동
-          }
-        });
-      } catch (err) { console.error("데이터 로드 실패", err); }
-    }
+async function loadParticipants(isFirstLoad){
+  try{
+    const res = await fetch(GAS_URL + "?action=list");
+    const data = await res.json();
+    const names = extractNames(data);
+    renderChips(names);
 
-    els.btnSubmit.onclick = async () => {
-      const name = els.userName.value.trim();
-      const topic = els.lunchTopic.value;
-      if(!name) return alert("닉네임을 입력해주세요!");
-      
-      els.btnSubmit.disabled = true;
-      els.submitNotice.textContent = "신청서를 보내는 중...";
-      
-      try {
-        await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ action: "submitPair", rawName1: name, rawName2: topic, groupCode: "TOPIC" })
-        });
-        els.submitNotice.className = "notice success";
-        els.submitNotice.textContent = "신청 완료! 실시간 현황이 업데이트됩니다.";
-        els.userName.value = "";
-        setTimeout(loadData, 1000);
-      } catch(e) {
-        els.submitNotice.className = "notice error";
-        els.submitNotice.textContent = "신청 중 오류가 발생했습니다.";
-      } finally {
-        els.btnSubmit.disabled = false;
+    if (isFirstLoad){
+      knownNames = new Set(names);
+      names.forEach((n, i) => setTimeout(() => dropBlock(n), i * 250));
+    } else {
+      const newNames = names.filter(n => !knownNames.has(n));
+      const removed = [...knownNames].some(n => !names.includes(n));
+      if (removed){
+        resetBlocks(names);
+      } else {
+        newNames.forEach((n, i) => setTimeout(() => dropBlock(n), i * 250));
       }
-    };
+      knownNames = new Set(names);
+    }
+  }catch(e){
+    chipBoard.innerHTML = '<span class="chip-empty">현황을 불러오지 못했어요. 잠시 후 새로고침 해주세요 🙏</span>';
+  }
+}
 
-    els.btnCancel.onclick = async () => {
-      const name = els.cancelName.value.trim();
-      if(!name) return alert("취소할 닉네임을 입력해주세요!");
-      els.btnCancel.disabled = true;
-      try {
-        await fetch(GAS_URL, {
-          method: "POST", headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ action: "cancel", rawName: name })
-        });
-        els.cancelNotice.textContent = "취소되었습니다.";
-        els.cancelName.value = "";
-        setTimeout(loadData, 1000);
-      } catch(e) { els.cancelNotice.textContent = "오류 발생"; }
-      finally { els.btnCancel.disabled = false; }
-    };
+/* ---------- 신청하기 ---------- */
+const applyBtn = document.getElementById("applyBtn");
+const applyMsg = document.getElementById("applyMsg");
 
-    els.lunchTopic.onchange = updateDescription;
-    window.onload = () => { initMatter(); loadData(); updateDescription(); };
-  </script>
+applyBtn.addEventListener("click", async () => {
+  const name = document.getElementById("userName").value.trim();
+  const topic = selectedTopic;
+
+  if (!name){
+    applyMsg.className = "msg err";
+    applyMsg.textContent = "닉네임을 입력해 주세요.";
+    return;
+  }
+
+  applyBtn.disabled = true;
+  applyMsg.className = "msg";
+  applyMsg.textContent = "신청하는 중... ⏳";
+
+  try{
+    /* 주의: Content-Type을 직접 지정하지 않아야 브라우저가 보내는 사전 확인 요청(CORS preflight)을
+       구글 앱스 스크립트가 처리하지 못해 생기는 오류를 피할 수 있습니다. 그대로 두세요! */
+    await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "apply", name: name, topic: topic })
+    });
+
+    applyMsg.className = "msg ok";
+    applyMsg.textContent = "신청 완료! 🎉";
+    document.getElementById("userName").value = "";
+    setTimeout(() => loadParticipants(false), 1200);
+  }catch(e){
+    applyMsg.className = "msg err";
+    applyMsg.textContent = "신청에 실패했어요. 잠시 후 다시 시도해 주세요 😭";
+  }finally{
+    applyBtn.disabled = false;
+  }
+});
+
+/* ---------- 취소하기 ---------- */
+const cancelBtn = document.getElementById("cancelBtn");
+const cancelMsg = document.getElementById("cancelMsg");
+
+cancelBtn.addEventListener("click", async () => {
+  const name = document.getElementById("cancelName").value.trim();
+
+  if (!name){
+    cancelMsg.className = "msg err";
+    cancelMsg.textContent = "취소할 닉네임을 입력해 주세요.";
+    return;
+  }
+
+  cancelBtn.disabled = true;
+  cancelMsg.className = "msg";
+  cancelMsg.textContent = "취소하는 중... ⏳";
+
+  try{
+    await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "cancel", name: name })
+    });
+
+    cancelMsg.className = "msg ok";
+    cancelMsg.textContent = "취소 완료 😭";
+    document.getElementById("cancelName").value = "";
+    setTimeout(() => loadParticipants(false), 1200);
+  }catch(e){
+    cancelMsg.className = "msg err";
+    cancelMsg.textContent = "취소에 실패했어요. 잠시 후 다시 시도해 주세요 🙏";
+  }finally{
+    cancelBtn.disabled = false;
+  }
+});
+
+/* ---------- 첫 로딩 ---------- */
+loadParticipants(true);
+</script>
 </body>
 </html>
